@@ -53,7 +53,7 @@ function FloatingMiniCard({ card }: { card: FloatingCard }) {
 
 export default function MainHero() {
     return (
-        <section className="relative mb-12 overflow-hidden rounded-3xl bg-gradient-to-br from-zinc-800 via-slate-950 to-black px-6 pb-12 pt-10 text-white shadow-2xl sm:px-10 sm:pt-12">
+        <section className="relative rounded-3xl bg-gradient-to-br from-zinc-800 via-slate-950 to-black text-white shadow-2xl sm:px-10 sm:pt-12">
             <div className="pointer-events-none absolute -left-20 top-8 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
             <div className="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-accent/15 blur-3xl" />
 
@@ -61,7 +61,7 @@ export default function MainHero() {
                 <FloatingMiniCard key={card.title} card={card} />
             ))}
 
-            <div className="relative z-10 mx-auto max-w-4xl text-center">
+            <div className="relative z-10 mx-auto max-w-5xl px-4 py-16 text-center sm:py-20 lg:py-24">
                 <h1 className="text-5xl font-bold tracking-tight text-white sm:text-7xl">
                     Video Background Changer
                 </h1>
@@ -71,13 +71,13 @@ export default function MainHero() {
 
                 <button
                     type="button"
-                    className="group mt-12 flex w-full max-w-3xl flex-col items-center justify-center rounded-[34px] border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-6 py-14 text-center shadow-2xl transition-all hover:border-white/30 hover:from-white/20 hover:shadow-3xl"
+                    className="group mx-auto mt-12 flex w-full max-w-2xl flex-col items-center justify-center rounded-[34px] border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-6 py-14 text-center shadow-2xl transition-all hover:border-white/30 hover:from-white/20 hover:shadow-3xl"
                 >
-                    <FiUpload size={42} className="text-white transition-transform group-hover:scale-105" />
-                    <span className="mt-4 text-3xl font-medium text-white sm:text-4xl">
+                    <FiUpload size={38} className="text-white" />
+                    <span className="mt-3 text-3xl font-medium text-white">
                         Click or Drag & Drop to Upload
                     </span>
-                    <span className="mt-2 text-lg text-white/80 sm:text-xl">
+                    <span className="mt-2 text-xl text-white/70">
                         supported formats: .mp4, .webm, .mov, .gif
                     </span>
                 </button>
