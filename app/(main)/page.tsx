@@ -59,7 +59,6 @@ export default function Home() {
             <Sidebar />
 
             <main className="min-h-screen pl-[84px]">
-                {/* Hero Section - Full Width, No Rounded Corners */}
                 <section className="relative w-full bg-gradient-to-br from-zinc-800 via-slate-950 to-black text-white">
                     <div className="pointer-events-none absolute -left-20 top-8 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
                     <div className="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-accent/15 blur-3xl" />
