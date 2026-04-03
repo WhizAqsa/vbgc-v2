@@ -53,7 +53,7 @@ function FloatingMiniCard({ card }: { card: FloatingCard }) {
 
 export default function MainHero() {
     return (
-        <section className="relative rounded-3xl bg-gradient-to-br from-zinc-800 via-slate-950 to-black text-white shadow-2xl sm:px-10 sm:pt-12">
+        <section className="relative bg-gradient-to-br from-zinc-800 via-slate-950 to-black text-white shadow-2xl sm:px-10 sm:pt-12">
             <div className="pointer-events-none absolute -left-20 top-8 h-72 w-72 rounded-full bg-accent/20 blur-3xl" />
             <div className="pointer-events-none absolute -right-28 top-10 h-80 w-80 rounded-full bg-accent/15 blur-3xl" />
 
