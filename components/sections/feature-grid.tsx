@@ -8,7 +8,7 @@ const showcaseCards: ShowcaseCard[] = [
     {
         badge: "NEW",
         title: "CHANGE VIDEO BACKGROUNDS",
-        description: "Remove, select, and apply a fresh background instantly",
+        description: "Remove, and apply a background instantly",
         gradient: "from-zinc-700 via-slate-900 to-zinc-950",
     },
     {
@@ -48,7 +48,7 @@ export default function FeatureGrid() {
     };
 
     return (
-        <section className="relative w-full px-4 sm:px-6 lg:px-8">
+        <section className="relative w-full px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-zinc-800 via-slate-950 to-black">
             {/* Carousel Container */}
             <div className="relative">
                 <div
