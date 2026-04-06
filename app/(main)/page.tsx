@@ -9,6 +9,9 @@ import KeyFeatures from "@/components/sections/key-features";
 import MainHero from "@/components/sections/main-hero";
 import StatCards from "@/components/sections/stat-cards";
 import UserBenefits from "@/components/sections/user-benefits";
+import BestPractices from "@/components/sections/best-practices";
+import StepByStepGuide from "@/components/sections/step-by-step-guide";
+import UseCases from "@/components/sections/use-cases";
 
 
 
@@ -48,6 +51,18 @@ export default function Home() {
 
                 <div className="bg-zinc-900">
                     <UserBenefits />
+                </div>
+
+                <div className="bg-zinc-900">
+                    <UseCases />
+                </div>
+
+                <div className="bg-zinc-900">
+                    <StepByStepGuide />
+                </div>
+
+                <div className="bg-zinc-900">
+                    <BestPractices />
                 </div>
 
 
