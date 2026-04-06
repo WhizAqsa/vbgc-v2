@@ -5,8 +5,10 @@ import FeatureBreakdown from "@/components/sections/feature-breakdown";
 import FeatureGrid from "@/components/sections/feature-grid";
 import FinancialMetrics from "@/components/sections/financial-metrics";
 import HowItWorks from "@/components/sections/how-ai-works";
+import KeyFeatures from "@/components/sections/key-features";
 import MainHero from "@/components/sections/main-hero";
 import StatCards from "@/components/sections/stat-cards";
+import UserBenefits from "@/components/sections/user-benefits";
 
 
 
@@ -39,6 +41,15 @@ export default function Home() {
                 <div className="pt-8 sm:pt-8 lg:pt-12 bg-zinc-900">
                     <StatCards />
                 </div>
+
+                <div className="bg-zinc-900">
+                    <KeyFeatures />
+                </div>
+
+                <div className="bg-zinc-900">
+                    <UserBenefits />
+                </div>
+
 
 
             </main>
