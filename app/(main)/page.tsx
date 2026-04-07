@@ -12,6 +12,10 @@ import UserBenefits from "@/components/sections/user-benefits";
 import BestPractices from "@/components/sections/best-practices";
 import StepByStepGuide from "@/components/sections/step-by-step-guide";
 import UseCases from "@/components/sections/use-cases";
+import UserReviews from "@/components/sections/user-reviews";
+import ShareNow from "@/components/sections/share-now";
+import FAQS from "@/components/sections/faqs";
+import Footer from "@/components/common/footer";
 
 
 
@@ -21,7 +25,7 @@ export default function Home() {
         <div className="min-h-screen ">
             <Sidebar />
 
-            <main className="min-h-screen pl-[84px]">
+            <main className="min-h-screen pl-[84px] ">
                 <MainHero />
 
                 <div className="pt-8 sm:pt-8 lg:pt-12 bg-gradient-to-br from-zinc-800 via-slate-950 to-black">
@@ -65,6 +69,22 @@ export default function Home() {
                     <BestPractices />
                 </div>
 
+                <div className="bg-zinc-900">
+                    <UserReviews />
+
+                </div>
+
+                <div className="bg-zinc-900 pt-8 sm:pt-8 lg:pt-12">
+                    <ShareNow />
+                </div>
+
+                <div className="bg-zinc-900 pt-8 sm:pt-8 lg:pt-12">
+                    <FAQS />
+                </div>
+
+                <div className="bg-zinc-900 pt-8 sm:pt-8 lg:pt-12">
+                    <Footer />
+                </div>
 
 
             </main>
