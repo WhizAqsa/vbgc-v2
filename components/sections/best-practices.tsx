@@ -47,55 +47,40 @@ const BestPractices = () => {
         <section className="py-20 px-4 bg-zinc-900">
             <div className="max-w-7xl mx-auto">
                 {/* Two Column Layout */}
-                <div className="grid lg:grid-cols-2 gap-12 items-start">
+                <div className="grid lg:grid-cols-3 gap-8 items-start">
                     <div className="sticky top-20">
                         <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 tracking-tight">
-                            Best Practices & Tips
+                            Best Practices &<br />Tips
                         </h2>
                         <p className="text-gray-400 text-medium md:text-lg lg:text-xl tracking-tight">
-                            Follow these recommendations to achieve the best possible results with our AI Video Background Changer.
+                            Follow these recommendations to achieve<br /> the best possible results with our AI Video<br /> Background Changer.
                         </p>
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="lg:col-span-2 grid grid-cols-2 gap-6">
                         {tips.map((tip, index) => (
                             <div
                                 key={index}
-                                className="bg-zinc-800 rounded-2xl p-6 border border-gray-700 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:-translate-y-1"
+                                className="bg-zinc-800/60 rounded-2xl p-6 border border-zinc-700 hover:border-cyan-500/50 transition-all duration-300 hover:transform hover:-translate-y-1"
                             >
-                                <div className="flex gap-4">
-                                    {/* Icon */}
-                                    <div className="flex-shrink-0">
-                                        <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-900 flex items-center justify-center text-white">
-                                            {tip.icon}
-                                        </div>
+                                <div className="mb-4">
+                                    <div className="w-12 h-12 rounded-lg bg-gradient-to-r from-purple-600 to-cyan-900 flex items-center justify-center text-white">
+                                        {tip.icon}
                                     </div>
+                                </div>
 
-                                    {/* Content */}
-                                    <div className="flex-1">
-                                        <h3 className="text-lg md:text-xl font-medium text-white mb-2">
-                                            {tip.title}
-                                        </h3>
-                                        <p className="text-gray-400 text-sm leading-relaxed tracking-tight">
-                                            {tip.description}
-                                        </p>
-                                    </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-white mb-2">
+                                        {tip.title}
+                                    </h3>
+                                    <p className="text-gray-400 text-sm leading-relaxed">
+                                        {tip.description}
+                                    </p>
                                 </div>
                             </div>
                         ))}
-
-
                     </div>
 
-                </div>
-                <div className="bg-gradient-to-b from-purple-950 to-cyan-800 rounded-2xl max-w-6xl mt-35 justify-end ">
-
-                    <div className="p-8">
-                        <h3 className="text-2xl font-bold text-white mb-4 justify-end">Pro Tip</h3>
-                        <p className="text-gray-300 text-lg justify-end">
-                            For the best results, record in a well-lit space with a simple, uncluttered background. While the AI handles complex scenes, clean footage improves speed and edge quality. If you record frequently, using basic lighting and a neutral backdrop ensures consistent, professional output.
-                        </p>
-                    </div>
                 </div>
             </div>
         </section>
