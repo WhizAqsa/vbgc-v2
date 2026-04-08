@@ -1,10 +1,11 @@
-import type { ReactNode } from "react";
-
-export type SidebarItem = {
+import React from 'react';
+export interface SidebarItem {
     label: string;
-    icon: ReactNode;
+    icon: React.ReactNode;
     comingSoon?: boolean;
-};
+    path?: string;
+    action?: string;
+}
 
 export type FloatingCard = {
     title: string;
