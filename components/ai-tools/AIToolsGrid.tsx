@@ -71,7 +71,7 @@ const AIToolsGrid: React.FC = () => {
             <div className="max-w-7xl justify-center mx-auto">
                 {/* Header Section */}
                 <div className="mb-8">
-                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold mb-4 mt-12 text-white tracking-tight">
+                    <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold mb-4 mt-24 text-white tracking-tight">
                         AI Tools
                     </h1>
                     <p className="text-lg md:text-xl text-white font-sm max-w-3xl tracking-tight">
