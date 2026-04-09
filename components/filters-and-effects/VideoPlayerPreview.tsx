@@ -1,7 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Pause, Volume2, VolumeX, Maximize, HelpCircle, Upload, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    FiPlay,
+    FiPause,
+    FiVolume2,
+    FiVolumeX,
+    FiMaximize,
+    FiHelpCircle,
+    FiUpload,
+    FiChevronLeft,
+    FiChevronRight
+} from "react-icons/fi";
 import Image from "next/image";
 
 export function VideoPlayerPreview() {
@@ -30,12 +40,12 @@ export function VideoPlayerPreview() {
 
                 {/* Help Button */}
                 <button className="absolute top-4 right-4 w-8 h-8 rounded-full border border-gray-300 text-white flex items-center justify-center hover:bg-white hover:text-purple-600 transition">
-                    <HelpCircle className="w-5 h-5" />
+                    <FiHelpCircle className="w-5 h-5" />
                 </button>
 
                 {/* Export Button */}
                 <button className="absolute top-4 right-16 flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white hover:bg-gray-700 transition">
-                    <Upload className="w-4 h-4" />
+                    <FiUpload className="w-4 h-4" />
                     <span className="text-sm font-medium">Export</span>
                 </button>
 
@@ -45,9 +55,9 @@ export function VideoPlayerPreview() {
                     className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white bg-opacity-20 backdrop-blur hover:bg-opacity-30 transition flex items-center justify-center"
                 >
                     {isPlaying ? (
-                        <Pause className="w-6 h-6 text-white" />
+                        <FiPause className="w-6 h-6 text-white" />
                     ) : (
-                        <Play className="w-6 h-6 text-white ml-1" />
+                        <FiPlay className="w-6 h-6 text-white ml-1" />
                     )}
                 </button>
             </div>
@@ -62,15 +72,15 @@ export function VideoPlayerPreview() {
                         </span>
                         <button className="flex items-center gap-2 px-4 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm hover:bg-gray-700 transition">
                             <span>Custom Position</span>
-                            <Maximize className="w-4 h-4" />
+                            <FiMaximize className="w-4 h-4" />
                         </button>
                     </div>
                     <div className="flex items-center gap-2">
                         <button className="p-1.5 text-gray-400 hover:text-white transition">
-                            <ChevronLeft className="w-5 h-5" />
+                            <FiChevronLeft className="w-5 h-5" />
                         </button>
                         <button className="p-1.5 text-gray-400 hover:text-white transition">
-                            <ChevronRight className="w-5 h-5" />
+                            <FiChevronRight className="w-5 h-5" />
                         </button>
                     </div>
                 </div>
@@ -107,9 +117,9 @@ export function VideoPlayerPreview() {
                             className="text-gray-400 hover:text-white transition"
                         >
                             {isMuted ? (
-                                <VolumeX className="w-5 h-5" />
+                                <FiVolumeX className="w-5 h-5" />
                             ) : (
-                                <Volume2 className="w-5 h-5" />
+                                <FiVolume2 className="w-5 h-5" />
                             )}
                         </button>
                         <div className="w-24 h-1 bg-gray-700 rounded-full cursor-pointer" />
