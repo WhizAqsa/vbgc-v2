@@ -21,7 +21,7 @@ const mainItems: SidebarItem[] = [
 	{ label: "Home", icon: <FiHome size={18} />, path: "/" },
 	{ label: "AI Tools", icon: <FiGrid size={18} />, path: "/ai-tools" },
 	{ label: "Change Bg", icon: <FiImage size={18} />, path: "/change-bg" },
-	{ label: "Filters & Effects", icon: <FaSlidersH size={18} />, path: "/filters" },
+	{ label: "Filters & Effects", icon: <FaSlidersH size={18} />, path: "/filters-and-effects" },
 	{ label: "Overlays & Stickers", icon: <FiLayers size={18} />, path: "/overlays" },
 	{ label: "Auto Captions", icon: <FaRegStickyNote size={18} />, comingSoon: true },
 ];
