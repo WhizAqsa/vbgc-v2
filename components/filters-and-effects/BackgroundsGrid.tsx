@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Search, Grid3X3, ChevronDown } from "lucide-react";
-
+import { FiSearch, FiGrid, FiChevronDown } from "react-icons/fi";
 const backgrounds = [
     "1",
     "2",
@@ -25,7 +24,7 @@ export function BackgroundsGrid() {
             {/* Search and Sort Bar */}
             <div className="flex items-center gap-3">
                 <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
+                    <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
                     <input
                         type="text"
                         placeholder="Search Backgrounds"
@@ -38,11 +37,11 @@ export function BackgroundsGrid() {
                     <div className="relative">
                         <button className="flex items-center gap-2 px-4 py-2 border border-gray-700 rounded-lg text-gray-300 hover:border-gray-500 transition">
                             <span className="text-sm">{sortBy}</span>
-                            <ChevronDown className="w-4 h-4" />
+                            <FiChevronDown className="w-4 h-4" />
                         </button>
                     </div>
                     <button className="p-2 border border-gray-700 rounded-lg text-gray-300 hover:border-gray-500 transition">
-                        <Grid3X3 className="w-5 h-5" />
+                        <FiGrid className="w-5 h-5" />
                     </button>
                 </div>
             </div>
