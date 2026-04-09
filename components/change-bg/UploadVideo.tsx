@@ -2,12 +2,7 @@
 "use client";
 
 import { useState, useCallback, useRef } from "react";
-import {
-    CloudUpload,
-
-    Lock,
-    Unlock,
-} from "lucide-react";
+import { FiUploadCloud } from "react-icons/fi";
 import Image from "next/image";
 
 export function UploadVideo() {
@@ -100,7 +95,7 @@ export function UploadVideo() {
                                     </div>
                                 ) : (
                                     <>
-                                        <CloudUpload className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                                        <FiUploadCloud className="w-16 h-16 mx-auto text-gray-300 mb-4" />
                                         <p className="text-xl font-medium text-gray-300">
                                             Click or Drag & Drop to Upload
                                         </p>
