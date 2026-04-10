@@ -2,66 +2,82 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { FiSearch, FiGrid, FiChevronDown } from "react-icons/fi";
-const backgrounds = [
-    "1",
-    "2",
-    "3",
-    "4",
-    "5",
-    "6",
-    "7",
-    "8",
-    "9",
+
+const intensityLevels = [
+    { id: "none", label: "None", value: 0 },
+    { id: "low", label: "Low", value: 25 },
+    { id: "medium", label: "Medium", value: 50 },
+    { id: "high", label: "High", value: 75 },
+    { id: "custom", label: "Custom", value: 60 }, // Default custom value
 ];
 
 export function BackgroundsGrid() {
-    const [searchQuery, setSearchQuery] = useState("");
-    const [sortBy, setSortBy] = useState("Relevance");
+    const [selectedIntensity, setSelectedIntensity] = useState("medium");
+    const [customIntensity, setCustomIntensity] = useState(60);
+
+    const handleIntensityClick = (level: typeof intensityLevels[0]) => {
+        setSelectedIntensity(level.id);
+        if (level.id !== "custom") {
+            setCustomIntensity(level.value);
+        }
+    };
 
     return (
-        <div className="space-y-4">
-            {/* Search and Sort Bar */}
-            <div className="flex items-center gap-3">
-                <div className="flex-1 relative">
-                    <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" />
-                    <input
-                        type="text"
-                        placeholder="Search Backgrounds"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="w-full pl-12 pr-4 py-2 bg-zinc-900 border border-gray-700 rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-gray-500 transition"
-                    />
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="relative">
-                        <button className="flex items-center gap-2 px-4 py-2 border border-gray-700 rounded-lg text-gray-300 hover:border-gray-500 transition">
-                            <span className="text-sm">{sortBy}</span>
-                            <FiChevronDown className="w-4 h-4" />
-                        </button>
-                    </div>
-                    <button className="p-2 border border-gray-700 rounded-lg text-gray-300 hover:border-gray-500 transition">
-                        <FiGrid className="w-5 h-5" />
-                    </button>
-                </div>
-            </div>
+        <div className="space-y-4 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl w-full">
+            <h3 className="text-gray-200 text-lg font-semibold text-center">
+                Blur Intensity
+            </h3>
 
-            {/* Backgrounds Grid */}
-            <div className="grid grid-cols-3 gap-4">
-                {backgrounds.map((bg) => (
+            <div className="grid grid-cols-3 gap-3">
+                {intensityLevels.map((level) => (
                     <div
-                        key={bg}
-                        className="relative w-full aspect-square rounded-lg overflow-hidden cursor-pointer group"
+                        key={level.id}
+                        onClick={() => handleIntensityClick(level)}
+                        className="space-y-2 cursor-pointer group"
                     >
-                        <Image
-                            src={`https://picsum.photos/300/300?random=${bg}`}
-                            alt={`Background ${bg}`}
-                            fill
-                            className="object-cover group-hover:scale-110 transition duration-300"
-                        />
-                        <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-20 transition" />
+                        <div
+                            className={`relative w-full aspect-square rounded-lg overflow-hidden transition-all bg-gray-800/60 group-hover:bg-gray-800/90 ${selectedIntensity === level.id
+                                ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-900"
+                                : "ring-1 ring-gray-700"
+                                }`}
+                        >
+                            <Image
+                                src={`https://picsum.photos/200/200?random=${level.id}`}
+                                alt={level.label}
+                                fill
+                                className="object-cover transition-transform group-hover:scale-105"
+                            />
+                        </div>
+
+                        <div className="text-center">
+                            <p
+                                className={`text-sm font-medium transition-colors ${selectedIntensity === level.id
+                                    ? "text-purple-400"
+                                    : "text-gray-400 group-hover:text-gray-200"
+                                    }`}
+                            >
+                                {level.label}
+                            </p>
+                        </div>
                     </div>
                 ))}
+            </div>
+
+            <div className="flex items-center gap-4 pt-4">
+                <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={customIntensity}
+                    onChange={(e) => {
+                        setCustomIntensity(parseInt(e.target.value));
+                        setSelectedIntensity("custom");
+                    }}
+                    className="flex-1 h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-600"
+                />
+                <div className="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 min-w-[60px] text-center">
+                    <span className="text-white font-semibold">{customIntensity}</span>
+                </div>
             </div>
         </div>
     );

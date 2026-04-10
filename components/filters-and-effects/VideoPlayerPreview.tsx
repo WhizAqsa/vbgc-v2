@@ -9,8 +9,6 @@ import {
     FiMaximize,
     FiHelpCircle,
     FiUpload,
-    FiChevronLeft,
-    FiChevronRight
 } from "react-icons/fi";
 import Image from "next/image";
 
@@ -26,8 +24,7 @@ export function VideoPlayerPreview() {
     const totalSeconds = (duration % 60).toString().padStart(2, "0");
 
     return (
-        <div className="space-y-4">
-            {/* Video Preview with Help Button */}
+        <div className="space-y-4 ml-24">
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-600 to-purple-900 border border-gray-700">
                 <div className="absolute inset-0 bg-purple-500 opacity-80 flex items-center justify-center">
                     <Image
@@ -38,21 +35,17 @@ export function VideoPlayerPreview() {
                     />
                 </div>
 
-                {/* Help Button */}
-                <button className="absolute top-4 right-4 w-8 h-8 rounded-full border border-gray-300 text-white flex items-center justify-center hover:bg-white hover:text-purple-600 transition">
+                <button className="absolute top-4 left-4 w-8 h-8 rounded-full border border-gray-300 text-white flex items-center justify-center hover:bg-white hover:text-purple-600 transition">
                     <FiHelpCircle className="w-5 h-5" />
                 </button>
 
-                {/* Export Button */}
-                <button className="absolute top-4 right-16 flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white hover:bg-gray-700 transition">
+                <button className="absolute top-4 right-4 flex items-center gap-2 px-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white hover:bg-gray-700 transition">
                     <FiUpload className="w-4 h-4" />
                     <span className="text-sm font-medium">Export</span>
                 </button>
-
-                {/* Play Button */}
                 <button
                     onClick={() => setIsPlaying(!isPlaying)}
-                    className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-white bg-opacity-20 backdrop-blur hover:bg-opacity-30 transition flex items-center justify-center"
+                    className="absolute bottom-4 right-4 w-12 h-12 rounded-full bg-opacity-10 bg-black backdrop-blur hover:bg-opacity-30 transition flex items-center justify-center"
                 >
                     {isPlaying ? (
                         <FiPause className="w-6 h-6 text-white" />
@@ -64,25 +57,18 @@ export function VideoPlayerPreview() {
 
             {/* Video Controls */}
             <div className="space-y-3">
-                {/* Time Display and Custom Position */}
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <span className="text-gray-400 text-sm">
                             {minutes}:{seconds} / {totalMinutes}:{totalSeconds}
                         </span>
-                        <button className="flex items-center gap-2 px-4 py-1.5 bg-gray-800 border border-gray-600 rounded-lg text-white text-sm hover:bg-gray-700 transition">
+                        <button className="flex items-center gap-2 px-4 py-1.5 bg-gray-800 rounded-full text-white text-sm hover:bg-gray-700 transition">
                             <span>Custom Position</span>
-                            <FiMaximize className="w-4 h-4" />
                         </button>
+                        <FiMaximize className="w-5 h-5 text-white" />
+
                     </div>
-                    <div className="flex items-center gap-2">
-                        <button className="p-1.5 text-gray-400 hover:text-white transition">
-                            <FiChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button className="p-1.5 text-gray-400 hover:text-white transition">
-                            <FiChevronRight className="w-5 h-5" />
-                        </button>
-                    </div>
+
                 </div>
 
                 {/* Timeline */}
@@ -125,17 +111,7 @@ export function VideoPlayerPreview() {
                         <div className="w-24 h-1 bg-gray-700 rounded-full cursor-pointer" />
                     </div>
 
-                    {/* Track Labels */}
-                    <div className="flex gap-4 text-xs text-gray-400">
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-purple-500" />
-                            <span>Background (2.28)</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-3 h-3 rounded bg-purple-600" />
-                            <span>Foreground (2.28)</span>
-                        </div>
-                    </div>
+
                 </div>
             </div>
         </div>

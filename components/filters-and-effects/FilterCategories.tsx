@@ -1,41 +1,36 @@
 "use client";
 
 import { useState } from "react";
-import {
-    FiImage,
-    FiMusic,
-    FiVideo,
-    FiFeather,   // closest for Palette
-    FiCpu,       // closest for Wand2 (AI)
-    FiGlobe
-} from "react-icons/fi";
-const categories = [
-    { label: "Gallery", icon: FiMusic },
-    { label: "Image", icon: FiImage },
-    { label: "Video", icon: FiVideo },
-    { label: "Color", icon: FiFeather },
-    { label: "AI", icon: FiCpu },
-    { label: "Web", icon: FiGlobe },
+import { MdBlurOn, MdBlurOff } from "react-icons/md";
+import { FiCircle, FiSliders } from "react-icons/fi";
+
+const filters = [
+    { id: "blur", label: "Blur", icon: MdBlurOn },
+    { id: "bw", label: "Black & White", icon: MdBlurOff },
+    { id: "green", label: "Green Screen", icon: FiCircle },
+    { id: "effects", label: "Filters", icon: FiSliders },
 ];
+
 export function FilterCategories() {
-    const [activeCategory, setActiveCategory] = useState("Gallery");
+    const [activeFilter, setActiveFilter] = useState("blur");
 
     return (
-        <div className="flex flex-wrap gap-3">
-            {categories.map((category) => {
-                const Icon = category.icon;
-                const isActive = activeCategory === category.label;
+        <div className="flex flex-wrap items-center gap-3">
+            {filters.map((filter) => {
+                const Icon = filter.icon;
+                const isActive = activeFilter === filter.id;
+
                 return (
                     <button
-                        key={category.label}
-                        onClick={() => setActiveCategory(category.label)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${isActive
-                            ? "bg-purple-600 border-purple-500 text-white"
-                            : "border-gray-600 text-gray-300 hover:border-gray-500"
+                        key={filter.id}
+                        onClick={() => setActiveFilter(filter.id)}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${isActive
+                            ? "bg-purple-600 text-white shadow-md"
+                            : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                             }`}
                     >
                         <Icon className="w-4 h-4" />
-                        <span className="text-sm font-medium">{category.label}</span>
+                        {filter.label}
                     </button>
                 );
             })}
