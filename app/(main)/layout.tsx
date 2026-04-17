@@ -8,7 +8,7 @@ export default function MainLayout({
     return (
         <>
             <Navbar />
-            <main className="min-h-screen">
+            <main className="min-h-screen bg-gradient-to-br from-zinc-800 via-slate-950 to-black">
                 {children}
             </main>
         </>

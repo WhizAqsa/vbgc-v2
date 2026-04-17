@@ -50,15 +50,15 @@ const StepByStepGuide = () => {
                 </div>
 
                 {/* Steps in a Row */}
-                <div className="flex flex-nowrap justify-center gap-6 mb-16 overflow-x-auto pb-6 px-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-16 pb-0 px-4">
                     {steps.map((step, index) => (
                         <div
                             key={index}
-                            className="flex-shrink-0 w-64"
+                            className="w-full"
                         >
                             {/* Image Container with Overlay Arrow */}
                             <div className="relative mb-4">
-                                <div className="relative h-60 w-full rounded-2xl overflow-hidden">
+                                <div className="relative h-40 sm:h-48 md:h-56 lg:h-60 w-full rounded-2xl overflow-hidden">
                                     <Image
                                         src={step.image}
                                         alt={step.title}
@@ -70,9 +70,9 @@ const StepByStepGuide = () => {
                                 </div>
 
                                 {index < steps.length - 1 && (
-                                    <div className="absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
-                                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-200">
-                                            <svg className="w-5 h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div className="hidden lg:flex absolute top-1/2 -right-4 transform -translate-y-1/2 z-10">
+                                        <div className="w-8 h-8 md:w-10 md:h-10 bg-white rounded-full flex items-center justify-center shadow-lg border border-gray-200">
+                                            <svg className="w-3 h-3 md:w-5 md:h-5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
                                             </svg>
                                         </div>
@@ -82,10 +82,10 @@ const StepByStepGuide = () => {
 
                             <div className="text-left">
 
-                                <h3 className="text-medium md:text-lg lg:text-xl font-semibold text-white mb-2">
+                                <h3 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold text-white mb-2">
                                     {step.title}
                                 </h3>
-                                <p className="text-gray-400 tracking-tight">
+                                <p className="text-xs sm:text-sm text-gray-400 tracking-tight">
                                     {step.description}
                                 </p>
                             </div>

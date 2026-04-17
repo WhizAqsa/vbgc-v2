@@ -1,4 +1,3 @@
-import React from 'react';
 
 const KeyFeatures = () => {
     const features = {
@@ -76,23 +75,21 @@ const KeyFeatures = () => {
                     </h2>
                 </div>
 
-                {/* Custom Grid Layout - Using CSS Grid for proper alignment */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 auto-rows-fr">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 auto-rows-fr">
 
                     <div className="flex flex-col gap-6">
                         <div className="group p-6 rounded-2xl bg-zinc-800 border border-gray-500 transition-all duration-300 hover:transform hover:-translate-y-1 flex-1">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-900 flex items-center justify-center mb-4 text-white">
                                 {features.tall.icon}
                             </div>
-                            <h3 className="text-2xl font-medium tracking-tight text-white mb-3">
+                            <h3 className="text-lg md:text-xl lg:text-2xl font-medium tracking-tight text-white mb-3">
                                 {features.tall.title}
                             </h3>
-                            <p className="text-gray-400 text-medium tracking-tight leading-relaxed">
+                            <p className="text-sm md:text-base text-gray-400 text-medium tracking-tight leading-relaxed">
                                 {features.tall.description}
                             </p>
                         </div>
 
-                        {/* 24/7 Support Card - Redesigned with icon in row */}
                         <div className="group p-6 rounded-2xl bg-zinc-800 border border-gray-500 transition-all duration-300 hover:transform hover:-translate-y-1">
                             <div className="flex items-center gap-3 mb-3">
                                 <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-900 flex items-center justify-center text-white">
@@ -108,7 +105,6 @@ const KeyFeatures = () => {
                         </div>
                     </div>
 
-                    {/* Column 2 - Rectangular cards with equal height */}
                     <div className="flex flex-col gap-6">
                         <div className="group p-6 rounded-2xl bg-zinc-800 border border-gray-500 transition-all duration-300 hover:transform hover:-translate-y-1 h-full">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-900 flex items-center justify-center mb-4 text-white">
@@ -135,7 +131,6 @@ const KeyFeatures = () => {
                         </div>
                     </div>
 
-                    {/* Column 3 - Rectangular cards with equal height */}
                     <div className="flex flex-col gap-6">
                         <div className="group p-6 rounded-2xl bg-zinc-800 border border-gray-500 transition-all duration-300 hover:transform hover:-translate-y-1 h-full">
                             <div className="w-12 h-12 rounded-xl bg-gradient-to-r from-purple-600 to-cyan-900 flex items-center justify-center mb-4 text-white">

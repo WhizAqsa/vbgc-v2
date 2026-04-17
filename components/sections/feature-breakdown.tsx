@@ -29,8 +29,8 @@ export default function FeatureBreakdown() {
     return (
         <section className="w-full px-4 py-16 md:py-24 bg-zinc-900">
             <div className="max-w-7xl mx-auto">
-                <div className="text-center mb-12 md:mb-16">
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold mb-4">
+                <div className="text-center mb-8 md:mb-12 lg:mb-16">
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold mb-3 md:mb-4">
                         <span className="bg-clip-text text-white">
                             Everything You Need to
                         </span>
@@ -39,13 +39,13 @@ export default function FeatureBreakdown() {
                             Remove Backgrounds Like a Pro
                         </span>
                     </h2>
-                    <p className="text-xs md:text-sm text-white max-w-3xl mx-auto mt-4">
+                    <p className="text-xs sm:text-sm md:text-base text-white max-w-3xl mx-auto mt-3 md:mt-4">
                         Professional-grade AI tools for creators, marketers, and teams—from single clips to full-length
                         productions.
                     </p>
                 </div>
 
-                <div className="space-y-16 md:space-y-24">
+                <div className="space-y-12 md:space-y-16 lg:space-y-24">
                     {features.map((feature) => (
                         <div
                             key={feature.id}
@@ -118,23 +118,23 @@ export default function FeatureBreakdown() {
                     ))}
                 </div>
 
-                <div className="mt-16 md:mt-24">
-                    <div className="rounded-2xl border border-blue-300 p-8 md:p-12 text-center max-w-6xl mx-auto">
-                        <div className="flex flex-row items-center justify-between gap-8">
-                            <div className="space-y-2 text-left flex-1">
-                                <h2 className="text-xl md:text-2xl lg:text-3xl tracking-tight font-semibold text-white">
+                <div className="mt-8 sm:mt-12 md:mt-16 lg:mt-24">
+                    <div className="rounded-2xl border border-blue-300 p-4 sm:p-6 md:p-8 lg:p-12 text-center max-w-6xl mx-auto">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 md:gap-8">
+                            <div className="space-y-2 text-center sm:text-left flex-1">
+                                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl tracking-tight font-semibold text-white">
                                     Ready To Transform Your Videos?
                                 </h2>
-                                <p className="text-gray-400 text-medium tracking-tight md:text-lg">
+                                <p className="text-sm sm:text-base text-gray-400 tracking-tight md:text-lg">
                                     Start removing backgrounds with AI in seconds. No credit card required.
                                 </p>
                             </div>
 
-                            <div className="flex flex-row gap-4">
-                                <button className="px-10 py-3 bg-white text-black rounded-full text-xs hover:bg-gray-800 transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap">
+                            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+                                <button className="px-6 sm:px-8 md:px-10 py-2.5 sm:py-3 bg-white text-black rounded-full text-xs sm:text-sm hover:bg-gray-800 transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap">
                                     Start Free Trial
                                 </button>
-                                <button className="px-10 py-3 bg-black text-white border border-gray-200 rounded-full text-xs hover:bg-gray-50 transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap">
+                                <button className="px-6 sm:px-8 md:px-10 py-2.5 sm:py-3 bg-black text-white border border-gray-200 rounded-full text-xs sm:text-sm hover:bg-gray-50 transition-all duration-200 shadow-md hover:shadow-lg whitespace-nowrap">
                                     Watch Demo
                                 </button>
                             </div>

@@ -9,8 +9,7 @@ const Footer: React.FC = () => {
         <footer className="bg-gradient-to-br from-zinc-800 via-slate-950 to-black text-white">
             <div className="border-t border-zinc-800 px-6 py-16 md:py-20">
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 md:gap-12">
-                        {/* Logo and Social Media */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8 lg:gap-12">
                         <div className="lg:col-span-1">
                             <div className="flex flex-col justify-left gap-3 mb-6">
                                 <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
@@ -24,7 +23,6 @@ const Footer: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Social Media Icons */}
                             <div className="flex gap-4 mb-8">
                                 <a href="#" className="w-10 h-10 rounded-full bg-zinc-800 hover:bg-gradient-to-tr hover:from-purple-600 hover:to-pink-600 transition-all duration-300 flex items-center justify-center group">
                                     <FaInstagram className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
@@ -39,7 +37,6 @@ const Footer: React.FC = () => {
                                     <FaYoutube className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
                                 </a>
                             </div>
-                            {/* Language Selector */}
                             <div className="flex items-center gap-2 text-sm">
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20H7m6-4h6m0 5H9" />
@@ -51,7 +48,6 @@ const Footer: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Platforms */}
                         <div>
                             <h3 className="text-gray-400 mb-4 text-sm tracking-tight">Platforms</h3>
                             <ul className="space-y-3">

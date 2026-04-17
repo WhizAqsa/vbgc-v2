@@ -54,7 +54,6 @@ const UserBenefits = () => {
         <div className="py-16 md:py-24 bg-zinc-900">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* Section Header */}
                 <div className="text-center mb-4">
                     <span className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white tracking-tight">
                         Benefits for Different Users
@@ -67,8 +66,7 @@ const UserBenefits = () => {
                     </h2>
                 </div>
 
-                {/* Benefits Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                     {userTypes.map((user, index) => (
                         <div
                             key={index}
@@ -88,7 +86,6 @@ const UserBenefits = () => {
                                         </div>
                                     </div>
 
-                                    {/* Icon centered */}
                                     <div className="flex justify-center mb-5">
                                         <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-purple-600 to-cyan-900 flex items-center justify-center text-white shadow-lg">
                                             {user.icon}
@@ -103,7 +100,6 @@ const UserBenefits = () => {
                                     </div>
 
 
-                                    {/* Benefits List */}
                                     <ul className="space-y-3">
                                         {user.benefits.map((benefit, idx) => (
                                             <li key={idx} className="flex items-start gap-2 text-gray-300">

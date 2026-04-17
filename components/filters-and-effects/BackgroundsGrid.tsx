@@ -23,17 +23,17 @@ export function BackgroundsGrid() {
     };
 
     return (
-        <div className="space-y-4 bg-gray-900/50 border border-gray-700 p-4 rounded-2xl w-full">
-            <h3 className="text-gray-200 text-lg font-semibold text-center">
+        <div className="space-y-3 sm:space-y-4 bg-gray-900/50 border border-gray-700 p-3 sm:p-4 rounded-lg sm:rounded-xl md:rounded-2xl w-full">
+            <h3 className="text-gray-200 text-sm sm:text-base md:text-lg font-semibold text-center">
                 Blur Intensity
             </h3>
 
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {intensityLevels.map((level) => (
                     <div
                         key={level.id}
                         onClick={() => handleIntensityClick(level)}
-                        className="space-y-2 cursor-pointer group"
+                        className="space-y-1 sm:space-y-2 cursor-pointer group"
                     >
                         <div
                             className={`relative w-full aspect-square rounded-lg overflow-hidden transition-all bg-gray-800/60 group-hover:bg-gray-800/90 ${selectedIntensity === level.id

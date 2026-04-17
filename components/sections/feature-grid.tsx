@@ -1,4 +1,3 @@
-// components/sections/feature-grid.tsx
 "use client";
 import { useState, useRef } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
@@ -49,7 +48,6 @@ export default function FeatureGrid() {
 
     return (
         <section className="relative w-full px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-zinc-800 via-slate-950 to-black">
-            {/* Carousel Container */}
             <div className="relative">
                 <div
                     ref={carouselRef}
@@ -58,7 +56,7 @@ export default function FeatureGrid() {
                     {showcaseCards.map((card) => (
                         <article
                             key={card.title}
-                            className={`group relative min-h-[250px] w-[450px] flex-shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${card.gradient} p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl`}
+                            className={`group relative min-h-[250px] w-full sm:w-[350px] md:w-[400px] lg:w-[450px] flex-shrink-0 overflow-hidden rounded-xl bg-gradient-to-br ${card.gradient} p-6 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl`}
                         >
                             <span className="inline-flex rounded-md bg-white px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-black shadow-md">
                                 {card.badge}
@@ -76,7 +74,6 @@ export default function FeatureGrid() {
                     ))}
                 </div>
 
-                {/* Navigation Buttons */}
                 <button
                     onClick={() => scroll("left")}
                     className="absolute left-0 top-1/2 z-10 -translate-y-1/2 -translate-x-3 rounded-full bg-white/20 p-2 text-white backdrop-blur transition hover:bg-white/30 sm:-translate-x-4 sm:p-3"

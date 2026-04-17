@@ -38,38 +38,35 @@ const UseCases = () => {
     ];
 
     return (
-        <section className="py-20 px-4 bg-zinc-900">
+        <section className="py-12 md:py-20 px-4 bg-zinc-900">
             <div className="max-w-7xl mx-auto">
-                {/* Two Column Layout */}
-                <div className="grid lg:grid-cols-2 gap-12 items-start">
-                    {/* Left Side - Title and Description */}
-                    <div className="sticky top-20">
-                        <h2 className="text-sm md:text-base font-semibold bg-gradient-to-r from-purple-500 via-sky-300 to-purple-300 bg-clip-text text-transparent tracking-wide uppercase">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 items-start">
+                    <div className="lg:sticky lg:top-20">
+                        <h3 className="text-sm md:text-base font-semibold bg-gradient-to-r from-purple-500 via-sky-300 to-purple-300 bg-clip-text text-transparent tracking-wide uppercase">
                             REAL-WORLD APPLICATIONS
-                        </h2>
+                        </h3>
 
                         <div className="mt-4">
-                            <h3 className="text-3xl md:text-4xl lg:text-5xl font-semibold text-white mb-4">
+                            <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-semibold text-white mb-4">
                                 Use Cases
                             </h3>
-                            <p className="text-gray-400 text-medium md:text-lg lg:text-xl tracking-tight">
+                            <p className="text-sm md:text-base lg:text-lg text-gray-400 tracking-tight">
                                 Discover how professionals across industries are using our AI Video Background Changer
                                 to create stunning content and streamline their workflows.
                             </p>
                         </div>
                     </div>
 
-                    {/* Right Side - Use Cases Column */}
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                         {useCases.map((useCase, index) => (
                             <div
                                 key={index}
-                                className="bg-zinc-800 rounded-2xl overflow-hidden border border-gray-700 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:-translate-y-1"
+                                className="bg-zinc-800 rounded-xl md:rounded-2xl overflow-hidden border border-gray-700 hover:border-purple-500/50 transition-all duration-300 hover:transform hover:-translate-y-1"
                             >
-                                <div className="flex flex-col md:flex-row gap-6 p-6">
+                                <div className="flex flex-col md:flex-row gap-4 md:gap-6 p-4 md:p-6">
                                     {/* Image */}
                                     <div className="md:w-2/5">
-                                        <div className="relative rounded-xl overflow-hidden h-48 md:h-32 lg:h-36">
+                                        <div className="relative rounded-lg md:rounded-xl overflow-hidden h-32 md:h-32 lg:h-36">
                                             <Image
                                                 src={useCase.image}
                                                 alt={useCase.alt}
@@ -83,10 +80,10 @@ const UseCases = () => {
 
                                     {/* Content */}
                                     <div className="md:w-3/5">
-                                        <h3 className="text-lg md:text-xl lg:text-2xl font-medium text-white mb-3">
+                                        <h3 className="text-base md:text-lg lg:text-xl font-medium text-white mb-2 md:mb-3">
                                             {useCase.title}
                                         </h3>
-                                        <p className="text-gray-400 tracking-tight text-sm md:text-base leading-relaxed">
+                                        <p className="text-xs md:text-sm text-gray-400 tracking-tight leading-relaxed">
                                             {useCase.description}
                                         </p>
                                     </div>

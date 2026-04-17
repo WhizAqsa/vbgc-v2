@@ -24,7 +24,7 @@ export function VideoPlayerPreview() {
     const totalSeconds = (duration % 60).toString().padStart(2, "0");
 
     return (
-        <div className="space-y-4 ml-24">
+        <div className="space-y-4 ml-0 lg:ml-24">
             <div className="relative w-full aspect-video rounded-2xl overflow-hidden bg-gradient-to-br from-purple-600 to-purple-900 border border-gray-700">
                 <div className="absolute inset-0 bg-purple-500 opacity-80 flex items-center justify-center">
                     <Image

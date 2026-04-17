@@ -31,10 +31,9 @@ export function BackgroundsGrid() {
     };
 
     return (
-        <div className="space-y-5 bg-gray-900/50 border border-gray-700 p-5 rounded-2xl w-full">
+        <div className="space-y-3 sm:space-y-4 md:space-y-5 bg-gray-900/50 border border-gray-700 p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl w-full">
 
-            {/* ✅ CATEGORY ROW */}
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                 {categories.map((cat) => {
                     const isActive = activeCategory === cat.id;
 
@@ -42,9 +41,9 @@ export function BackgroundsGrid() {
                         <button
                             key={cat.id}
                             onClick={() => setActiveCategory(cat.id)}
-                            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${isActive
-                                    ? "bg-purple-600 text-white"
-                                    : "bg-gray-800 text-gray-300 hover:bg-gray-700"
+                            className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all ${isActive
+                                ? "bg-purple-600 text-white"
+                                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
                                 }`}
                         >
                             {cat.label}
@@ -53,7 +52,6 @@ export function BackgroundsGrid() {
                 })}
             </div>
 
-            {/* ✅ GRID (unchanged) */}
             <div className="grid grid-cols-3 gap-3">
                 {intensityLevels.map((level) => (
                     <div
@@ -63,8 +61,8 @@ export function BackgroundsGrid() {
                     >
                         <div
                             className={`relative w-full aspect-square rounded-lg overflow-hidden transition-all bg-gray-800/60 group-hover:bg-gray-800/90 ${selectedIntensity === level.id
-                                    ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-900"
-                                    : "ring-1 ring-gray-700"
+                                ? "ring-2 ring-purple-500 ring-offset-2 ring-offset-gray-900"
+                                : "ring-1 ring-gray-700"
                                 }`}
                         >
                             <Image

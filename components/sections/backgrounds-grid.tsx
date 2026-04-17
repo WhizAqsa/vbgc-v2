@@ -59,7 +59,7 @@ export default function BackgroundsGrid() {
                     </button>
                 </div>
 
-                <div className="grid grid-cols-5 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
                     {backgrounds.map((bg, index) => {
                         // Determine height classes based on position (0-indexed)
                         // 1st (index 0) and last (index 4): largest height
@@ -67,11 +67,11 @@ export default function BackgroundsGrid() {
                         // 3rd (index 2): smallest height
                         let heightClass = "";
                         if (index === 0 || index === 4) {
-                            heightClass = "h-64 md:h-80 lg:h-96"; // largest
+                            heightClass = "h-32 sm:h-40 md:h-64 lg:h-96"; // largest
                         } else if (index === 1 || index === 3) {
-                            heightClass = "h-56 md:h-72 lg:h-80"; // medium
+                            heightClass = "h-28 sm:h-36 md:h-56 lg:h-80"; // medium
                         } else if (index === 2) {
-                            heightClass = "h-48 md:h-60 lg:h-72"; // smallest
+                            heightClass = "h-24 sm:h-32 md:h-48 lg:h-72"; // smallest
                         }
 
                         return (
@@ -86,7 +86,6 @@ export default function BackgroundsGrid() {
                                     className="object-cover"
                                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 20vw, 20vw"
                                 />
-                                {/* Optional overlay on hover */}
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300" />
                             </div>
                         );
@@ -94,27 +93,23 @@ export default function BackgroundsGrid() {
                 </div>
 
                 {/* Create, Edit & Share on the Go Button */}
-                <div className="mt-12 md:mt-16 flex justify-center">
-                    {/* Main Button - Sky Blue Gradient */}
-                    <button className="flex items-center gap-4 px-8 py-4 bg-gradient-to-r from-sky-400 via-white to-sky-400 text-gray-900 rounded-full font-medium hover:from-sky-500 hover:to-blue-500 transition-all duration-200 shadow-md hover:shadow-lg">
-                        {/* Logo/Icon */}
+                <div className="mt-8 sm:mt-10 md:mt-12 lg:mt-16 flex justify-center px-4 sm:px-0">
+                    <button className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 px-4 sm:px-6 md:px-8 py-3 sm:py-4 bg-gradient-to-r from-sky-400 via-white to-sky-400 text-gray-900 rounded-full font-medium hover:from-sky-500 hover:to-blue-500 transition-all duration-200 shadow-md hover:shadow-lg w-full sm:w-auto">
                         <svg
-                            className="w-6 h-6 md:w-7 md:h-7"
+                            className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
                             fill="currentColor"
                             viewBox="0 0 24 24"
                         >
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
                         </svg>
 
-                        {/* Main Text */}
-                        <span className="text-base md:text-lg">
+                        <span className="text-sm sm:text-base md:text-lg text-center">
                             Create, Edit & Share on the Go
                         </span>
 
-                        {/* Download Button - Inside Main Button */}
-                        <div className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200">
+                        <div className="flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-black text-white rounded-full hover:bg-gray-800 transition-colors duration-200">
                             <svg
-                                className="w-4 h-4 md:w-5 md:h-5"
+                                className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -126,7 +121,7 @@ export default function BackgroundsGrid() {
                                     d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                                 />
                             </svg>
-                            <span className="text-sm md:text-base font-medium">
+                            <span className="text-xs sm:text-sm md:text-base font-medium">
                                 Download for free
                             </span>
                         </div>

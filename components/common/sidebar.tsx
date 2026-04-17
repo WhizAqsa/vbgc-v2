@@ -37,17 +37,17 @@ function SidebarButton({ item, onClick }: { item: SidebarItem; onClick: () => vo
 		<button
 			type="button"
 			onClick={onClick}
-			className="group relative flex w-full flex-col items-center gap-2 rounded-xl border border-white/10 px-2 py-3 text-white transition hover:border-white/20 hover:bg-white/5"
+			className="group relative flex w-full flex-col items-center gap-1.5 rounded-xl border border-white/10 px-2 py-3 text-white transition hover:border-white/20 hover:bg-white/5"
 		>
 			<div className="relative">
 				{item.icon}
 				{item.comingSoon ? (
-					<span className="absolute -right-7 -top-2 whitespace-nowrap rounded-full bg-white px-2 py-0.2 text-[8px] font-bold uppercase text-black shadow-md">
-						Coming Soon
+					<span className="absolute -right-6 -top-2 whitespace-nowrap rounded-full bg-white px-1.5 py-0.5 text-[7px] font-bold uppercase text-black shadow-md">
+						New
 					</span>
 				) : null}
 			</div>
-			<span className="w-full break-words text-center text-xs font-medium leading-tight">
+			<span className="w-full break-words text-center text-[10px] sm:text-xs font-medium leading-tight line-clamp-3">
 				{item.label}
 			</span>
 		</button>
@@ -62,12 +62,8 @@ export default function Sidebar() {
 	};
 
 	return (
-		<aside className="fixed left-0 top-0 z-20 flex h-screen w-[100px] flex-col justify-between border-r border-white/10 bg-gradient-to-br from-zinc-800 via-slate-950 to-black px-3 py-4 text-white backdrop-blur-md">
-			<div className="space-y-5 pt-2">
-				<div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-text-primary">
-					<span className="text-lg font-bold">V</span>
-				</div>
-
+		<aside className="flex h-screen w-[80px] sm:w-[90px] md:w-[100px] lg:w-[110px] xl:w-[120px] flex-col border-r border-white/10 bg-gradient-to-br from-zinc-800 via-slate-950 to-black px-2 sm:px-3 py-4 text-white backdrop-blur-md overflow-x-visible">
+			<div className="flex-1 overflow-y-auto overflow-x-visible space-y-5 pt-2 sm:pt-2 md:pt-2 lg:pt-20">
 				<div className="space-y-2">
 					{mainItems.map((item) => (
 						<SidebarButton
@@ -93,7 +89,6 @@ export default function Sidebar() {
 						key={item.label}
 						item={item}
 						onClick={() => {
-							// Add functionality for secondary items here
 							console.log(`${item.label} clicked`);
 						}}
 					/>
