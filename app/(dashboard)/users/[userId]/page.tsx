@@ -13,12 +13,12 @@ import UserActivityTimelineTab from '@/components/dashboard/UserActivityTimeline
 import Link from 'next/link';
 
 interface PageParams {
-    params: {
-        userId: string;
-    };
+    params: Promise<{ userId: string }>;
+
 }
 
 export default function UserDetailPage({ params }: PageParams) {
+    const { userId } = React.use(params);
     const [activeTab, setActiveTab] = useState<'profile' | 'subscription' | 'features' | 'jobs' | 'logs' | 'notes' | 'activity'>('profile');
 
     const tabs = [
@@ -36,14 +36,14 @@ export default function UserDetailPage({ params }: PageParams) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="mb-8">
                     <Link
-                        href="/dashboard/users"
+                        href="/users"
                         className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 mb-4"
                     >
                         <FiArrowLeft className="w-4 h-4" />
                         <span>Back to Users</span>
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900">User Details</h1>
-                    <p className="text-gray-600 mt-1">User ID: {params.userId}</p>
+                    <p className="text-gray-600 mt-1">User ID: {userId}</p>
                 </div>
 
                 <div className="bg-white rounded-lg border border-gray-200 shadow-sm mb-8">
@@ -63,13 +63,13 @@ export default function UserDetailPage({ params }: PageParams) {
                     </div>
 
                     <div className="p-6">
-                        {activeTab === 'profile' && <UserProfileTab userId={params.userId} />}
-                        {activeTab === 'subscription' && <UserSubscriptionTab userId={params.userId} />}
-                        {activeTab === 'features' && <UserFeatureAccessTab userId={params.userId} />}
-                        {activeTab === 'jobs' && <UserVideoJobsTab userId={params.userId} />}
-                        {activeTab === 'logs' && <UserDebugLogsTab userId={params.userId} />}
-                        {activeTab === 'notes' && <UserNotesTab userId={params.userId} />}
-                        {activeTab === 'activity' && <UserActivityTimelineTab userId={params.userId} />}
+                        {activeTab === 'profile' && <UserProfileTab userId={userId} />}
+                        {activeTab === 'subscription' && <UserSubscriptionTab userId={userId} />}
+                        {activeTab === 'features' && <UserFeatureAccessTab userId={userId} />}
+                        {activeTab === 'jobs' && <UserVideoJobsTab userId={userId} />}
+                        {activeTab === 'logs' && <UserDebugLogsTab userId={userId} />}
+                        {activeTab === 'notes' && <UserNotesTab userId={userId} />}
+                        {activeTab === 'activity' && <UserActivityTimelineTab userId={userId} />}
                     </div>
                 </div>
             </div>
