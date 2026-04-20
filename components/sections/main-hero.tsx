@@ -1,6 +1,9 @@
+"use client";
+
 import { FiUpload } from "react-icons/fi";
 
 import type { FloatingCard } from "@/types/home";
+import { useRouter } from "next/navigation";
 
 const leftCards: FloatingCard[] = [
     {
@@ -51,6 +54,13 @@ function FloatingMiniCard({ card }: { card: FloatingCard }) {
 }
 
 export default function MainHero() {
+
+    const router = useRouter();
+
+    const handleNavigate = () => {
+        router.push("/change-bg");
+    };
+
     return (
         <section className="relative bg-gradient-to-br from-zinc-800 via-slate-950 to-black text-white shadow-2xl px-4 sm:px-6 md:px-8 lg:px-10 pt-6 sm:pt-8 md:pt-10 lg:pt-12 overflow-x-visible">
             <div className="pointer-events-none absolute -left-20 top-8 h-40 w-40 sm:h-52 sm:w-52 md:h-60 md:w-60 lg:h-72 lg:w-72 rounded-full bg-accent/20 blur-3xl" />
@@ -71,6 +81,7 @@ export default function MainHero() {
                 <div className="relative mt-6 sm:mt-8 md:mt-10 lg:mt-12">
                     <button
                         type="button"
+                        onClick={handleNavigate}
                         className="group mx-auto flex w-full max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl flex-col items-center justify-center rounded-2xl sm:rounded-[28px] md:rounded-[34px] border border-white/20 bg-gradient-to-br from-white/10 via-white/5 to-transparent px-4 sm:px-5 md:px-6 py-6 sm:py-8 md:py-10 lg:py-12 text-center shadow-2xl transition-all hover:border-white/30 hover:from-white/20 hover:shadow-3xl"
                     >
                         <FiUpload size={20} className="text-white sm:size-24 md:size-28 lg:size-32" />
