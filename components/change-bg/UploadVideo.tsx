@@ -1,47 +1,366 @@
-// components/change-bg/UploadVideo.tsx
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { FiUploadCloud } from "react-icons/fi";
 import Image from "next/image";
+import Swal from "sweetalert2";
+
+interface VideoInfo {
+    name: string;
+    size: string;
+    duration: string;
+}
 
 export function UploadVideo() {
-    const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+    const router = useRouter();
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
+    const [videoInfo, setVideoInfo] = useState<VideoInfo>({
+        name: "",
+        size: "",
+        duration: "",
+    });
+    const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const handleFile = useCallback((file: File) => {
-        const validTypes = ["video/mp4", "video/webm", "video/quicktime", "image/gif"];
-        if (validTypes.includes(file.type)) {
-            setUploadedFile(file);
-            const url = URL.createObjectURL(file);
-            setPreviewUrl(url);
-        } else {
-            alert("Please upload an MP4, WebM, MOV, or GIF file");
+    useEffect(() => {
+        return () => {
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        };
+    }, [previewUrl]);
+
+    // Format file size
+    const formatFileSize = (bytes: number): string => {
+        if (bytes === 0) return "0 Bytes";
+        const k = 1024;
+        const sizes = ["Bytes", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+    };
+
+    // Get video metadata
+    const getVideoMetadata = (file: File): Promise<{ duration: string; isValid: boolean; error?: string }> => {
+        return new Promise((resolve) => {
+            const allowedTypes = ["video/mp4", "video/x-m4v", "video/webm", "video/quicktime", "image/gif"];
+
+            if (!allowedTypes.includes(file.type)) {
+                resolve({
+                    duration: "0:00",
+                    isValid: false,
+                    error: "Please upload a supported file (.mp4, .webm, .mov, or .gif)",
+                });
+                return;
+            }
+
+            if (file.type === "image/gif") {
+                resolve({
+                    duration: "0:01",
+                    isValid: true,
+                });
+                return;
+            }
+
+            const videoElement = document.createElement("video");
+            videoElement.preload = "metadata";
+
+            videoElement.onloadedmetadata = () => {
+                const durationInSeconds = videoElement.duration;
+
+                // Check duration limit (free users: 20 seconds)
+                if (durationInSeconds > 20) {
+                    resolve({
+                        duration: "0:00",
+                        isValid: false,
+                        error: "Video duration exceeds 20 seconds. Please upload a shorter video or upgrade to premium.",
+                    });
+                    return;
+                }
+
+                const minutes = Math.floor(durationInSeconds / 60);
+                const seconds = Math.floor(durationInSeconds % 60);
+                const duration = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+                resolve({
+                    duration,
+                    isValid: true,
+                });
+            };
+
+            videoElement.onerror = () => {
+                resolve({
+                    duration: "0:00",
+                    isValid: false,
+                    error: "Error reading video file. Please try another file.",
+                });
+            };
+
+            videoElement.src = URL.createObjectURL(file);
+        });
+    };
+
+    const prepareVideoForUpload = async (file: File): Promise<File> => {
+        console.log("Video prepared for upload:", file.name);
+        return file;
+    };
+
+    const uploadFileToServer = async (): Promise<boolean> => {
+        return new Promise((resolve) => {
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                setUploadProgress(progress);
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    resolve(true);
+                }
+            }, 200);
+        });
+    };
+
+    const resetUploadState = useCallback(() => {
+        if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
         }
-    }, []);
+        setPreviewUrl(null);
+        setVideoInfo({ name: "", size: "", duration: "" });
+        setUploadProgress(0);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
+    }, [previewUrl]);
+
+    const storeVideoInIndexedDB = async (file: File, videoName: string) => {
+        return new Promise<void>((resolve, reject) => {
+            if (!videoName) {
+                reject(new Error("videoName is required"));
+                return;
+            }
+
+            // Convert File to ArrayBuffer (IndexedDB can store this)
+            const fileReader = new FileReader();
+            fileReader.onload = async () => {
+                const arrayBuffer = fileReader.result as ArrayBuffer;
+
+                const request = indexedDB.open("VideoPreviewsDB", 4);
+
+                request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+                    const db = (event.target as IDBOpenDBRequest)?.result;
+                    if (!db) {
+                        reject(new Error("Failed to get database instance"));
+                        return;
+                    }
+
+                    // Delete old object store if it exists
+                    if (db.objectStoreNames.contains("userVideos")) {
+                        db.deleteObjectStore("userVideos");
+                    }
+
+                    // Create fresh object store with proper keyPath
+                    const store = db.createObjectStore("userVideos", { keyPath: "id", autoIncrement: true });
+                    store.createIndex("videoName", "videoName", { unique: true });
+                    store.createIndex("by_timestamp", "timestamp");
+                };
+
+                request.onsuccess = (event: Event) => {
+                    const db = (event.target as IDBOpenDBRequest)?.result;
+                    if (!db) {
+                        reject(new Error("Failed to get database instance"));
+                        return;
+                    }
+
+                    try {
+                        const transaction = db.transaction(["userVideos"], "readwrite");
+                        const store = transaction.objectStore("userVideos");
+
+                        // Store with 24-hour expiration
+                        const expiration = Date.now() + 24 * 60 * 60 * 1000;
+
+                        const record = {
+                            videoName,
+                            type: "original",
+                            fileBuffer: arrayBuffer,
+                            fileName: file.name,
+                            fileType: file.type,
+                            fileSize: file.size,
+                            expiration,
+                            timestamp: Date.now(),
+                        };
+
+                        const putRequest = store.add(record);
+                        putRequest.onsuccess = () => {
+                            db.close();
+                            resolve();
+                        };
+                        putRequest.onerror = () => {
+                            db.close();
+                            reject(new Error(`Failed to store video: ${putRequest.error?.message}`));
+                        };
+
+                        transaction.onerror = () => {
+                            db.close();
+                            reject(new Error(`Transaction failed: ${transaction.error?.message}`));
+                        };
+                    } catch (error) {
+                        db.close();
+                        reject(error);
+                    }
+                };
+
+                request.onerror = (event: Event) => {
+                    const error = (event.target as IDBOpenDBRequest)?.error;
+                    reject(error || new Error("Failed to open database"));
+                };
+            };
+
+            fileReader.onerror = () => {
+                reject(new Error("Failed to read file"));
+            };
+
+            fileReader.readAsArrayBuffer(file);
+        });
+    };
 
 
+    const handleFile = useCallback(async (file: File) => {
 
+        const validTypes = ["video/mp4", "video/webm", "video/quicktime", "image/gif"];
+
+        if (!validTypes.includes(file.type)) {
+            Swal.fire({
+                icon: "error",
+                title: "Invalid File Type",
+                text: "Please upload an MP4, WebM, MOV, or GIF file",
+                timer: 1500,
+                showConfirmButton: false,
+            });
+            return;
+        }
+
+        setIsUploading(true);
+        setUploadProgress(0);
+
+        const metadata = await getVideoMetadata(file);
+
+        if (!metadata.isValid) {
+            Swal.fire({
+                icon: "error",
+                title: "Upload Failed",
+                text: metadata.error,
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            setIsUploading(false);
+            return;
+        }
+
+        // Set video info
+        setVideoInfo({
+            name: file.name,
+            size: formatFileSize(file.size),
+            duration: metadata.duration,
+        });
+
+        // Prepare video for upload
+        let uploadFile = file;
+        try {
+            uploadFile = await prepareVideoForUpload(file);
+        } catch (error) {
+            console.warn("Could not prepare video, using original", error);
+        }
+
+        // Create preview URL
+        const url = URL.createObjectURL(transcodedFile);
+        setPreviewUrl(url);
+
+        const uploadSuccess = await uploadFileToServer();
+
+        if (uploadSuccess) {
+            const timestamp = Date.now();
+            const videoNameWithTimestamp = `${timestamp}__${file.name}`;
+
+            try {
+                await storeVideoInIndexedDB(uploadFile, videoNameWithTimestamp);
+                console.log("Video stored in IndexedDB successfully");
+            } catch (error) {
+                console.error("Failed to store video in IndexedDB:", error);
+            }
+
+            setIsUploading(false);
+
+            sessionStorage.setItem("uploadedVideoInfo", JSON.stringify({
+                name: file.name,
+                size: formatFileSize(uploadFile.size),
+                duration: metadata.duration,
+                previewUrl: url,
+                fileType: "video/mp4",
+                isGuest: !localStorage.getItem("token"),
+            }));
+
+            const result = await Swal.fire({
+                icon: "success",
+                title: "Upload Complete!",
+                text: "Your video has been uploaded successfully.",
+                showConfirmButton: true,
+                confirmButtonText: "Apply Filters & Effects",
+                showDenyButton: true,
+                denyButtonText: "Upload New Video",
+                confirmButtonColor: "#3b82f6",
+                denyButtonColor: "#6b7280",
+            });
+
+            if (result.isConfirmed) {
+                router.push("/filters-and-effects");
+            } else if (result.isDenied) {
+                resetUploadState();
+                setIsUploading(false);
+            }
+        } else {
+            Swal.fire({
+                icon: "error",
+                title: "Upload Failed",
+                text: "There was an error uploading your video. Please try again.",
+                timer: 2000,
+                showConfirmButton: false,
+            });
+            setIsUploading(false);
+        }
+    }, [router, resetUploadState]);
 
     const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) handleFile(file);
     }, [handleFile]);
 
+    const handleDragOver = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+    }, []);
 
+    const handleDragLeave = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+    }, []);
+
+    const handleDrop = useCallback((e: React.DragEvent) => {
+        e.preventDefault();
+        setIsDragging(false);
+        const file = e.dataTransfer.files?.[0];
+        if (file) handleFile(file);
+    }, [handleFile]);
 
     const handleUnlock = () => {
-        alert("Upgrade to unlock more formats! (Demo)");
+        router.push("/pricing");
     };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-zinc-800 via-slate-950 to-black py-8 sm:py-12 md:py-16 px-4 sm:px-6 lg:px-8">
             <div className="relative overflow-hidden">
                 <div className="relative mx-auto max-w-7xl">
-
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 md:gap-12 items-start">
-
                         <div className="flex flex-col justify-start">
                             <div className="text-left mb-4 sm:mb-6 md:mb-8 mt-0 sm:mt-6 lg:mt-12">
                                 <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-white">
@@ -66,11 +385,16 @@ export function UploadVideo() {
                         </div>
 
                         <div className="flex flex-col gap-3 sm:gap-4 md:gap-6 mt-0 lg:mt-24 lg:ml-12">
-
-                            {/* Upload Area */}
                             <div
-                                className={`relative border border-gray-500 bg-zinc-800 rounded-2xl sm:rounded-3xl p-6 sm:p-10 md:p-16 lg:p-20 text-center transition-all duration-300 cursor-pointer shadow-2xl hover:border-gray-500 hover:shadow-3xl min-h-40 sm:min-h-48 md:min-h-56 w-full`}
-                                onClick={() => fileInputRef.current?.click()}
+                                className={`relative border-2 rounded-2xl sm:rounded-3xl p-6 sm:p-10 md:p-16 lg:p-20 text-center transition-all duration-300 cursor-pointer shadow-2xl min-h-40 sm:min-h-48 md:min-h-56 w-full
+                  ${isDragging
+                                        ? "border-blue-500 bg-blue-900/30"
+                                        : "border-gray-500 bg-zinc-800 hover:border-gray-400 hover:shadow-3xl"
+                                    }`}
+                                onClick={() => !isUploading && fileInputRef.current?.click()}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
                             >
                                 <input
                                     ref={fileInputRef}
@@ -78,34 +402,57 @@ export function UploadVideo() {
                                     accept="video/mp4,video/webm,video/quicktime,image/gif"
                                     className="hidden"
                                     onChange={handleFileInput}
+                                    disabled={isUploading}
                                 />
 
-                                {previewUrl ? (
-                                    <div className="space-y-2 sm:space-y-4">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setUploadedFile(null);
-                                                setPreviewUrl(null);
-                                            }}
-                                            className="text-xs sm:text-sm text-purple-300 hover:text-white transition"
-                                        >
-                                            Remove & upload new
-                                        </button>
+                                {isUploading ? (
+                                    <div className="space-y-4">
+                                        <div className="flex justify-center">
+                                            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                                        </div>
+                                        <p className="text-base sm:text-lg font-medium text-gray-300">
+                                            Uploading...
+                                        </p>
+                                        <div className="w-full bg-gray-700 rounded-full h-2">
+                                            <div
+                                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                                style={{ width: `${uploadProgress}%` }}
+                                            />
+                                        </div>
+                                        <p className="text-sm text-gray-400">{uploadProgress}%</p>
+                                    </div>
+                                ) : previewUrl ? (
+                                    <div className="space-y-3 sm:space-y-4">
+                                        <video
+                                            src={previewUrl}
+                                            className="w-full max-h-48 object-contain rounded-lg"
+                                            controls
+                                            autoPlay={false}
+                                            loop
+                                        />
+                                        <div className="space-y-1">
+                                            <p className="text-sm text-gray-300 truncate">{videoInfo.name}</p>
+                                            <p className="text-xs text-gray-400">
+                                                {videoInfo.size} • {videoInfo.duration}
+                                            </p>
+                                        </div>
                                     </div>
                                 ) : (
                                     <>
                                         <FiUploadCloud className="w-10 h-10 sm:w-14 md:w-16 lg:h-16 mx-auto text-gray-300 mb-2 sm:mb-3 md:mb-4" />
                                         <p className="text-base sm:text-lg md:text-xl font-medium text-gray-300">
-                                            Click or Drag & Drop to Upload
+                                            {isDragging ? "Drop your video here" : "Click or Drag & Drop to Upload"}
                                         </p>
-                                        <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-300">
+                                        <p className="mt-1 sm:mt-2 text-xs sm:text-sm text-gray-400">
                                             Supported formats: .mp4, .webm, .mov, .gif
+                                        </p>
+                                        <p className="text-xs text-gray-500 mt-2">
+                                            Max duration: 20 seconds (Free tier)
                                         </p>
                                     </>
                                 )}
                             </div>
-                            {/* Unlock Section */}
+
                             <div className="border border-gray-500 bg-gradient-to-b from-slate-850 to-cyan-700 rounded-2xl sm:rounded-3xl p-3 sm:p-4 md:p-5 shadow-2xl w-full">
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-6">
                                     <div className="flex-1">
@@ -126,7 +473,6 @@ export function UploadVideo() {
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
