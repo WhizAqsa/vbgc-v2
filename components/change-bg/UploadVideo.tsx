@@ -272,7 +272,9 @@ export function UploadVideo() {
             console.warn("Could not prepare video, using original", error);
         }
 
-        
+        // Create preview URL
+        const url = URL.createObjectURL(uploadFile);
+        setPreviewUrl(url);
 
         const uploadSuccess = await uploadFileToServer();
 
