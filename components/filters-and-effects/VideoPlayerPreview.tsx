@@ -11,7 +11,16 @@ import {
     FiUpload,
 } from "react-icons/fi";
 import Image from "next/image";
+import Swal from "sweetalert2";
 import { getLatestVideoFromIndexedDB } from "@/lib/indexeddb-utils";
+import {
+    uploadVideoToServer,
+    processVideoForBlur,
+    checkCompressionStatus,
+    checkVideoStatus,
+} from "@/lib/blur-processing";
+
+const ServerURL = process.env.REACT_APP_BACKEND_API || "https://vbgcweb.videobackgroundchanger.com/";
 
 interface UploadedVideoInfo {
     name: string;
@@ -22,12 +31,22 @@ interface UploadedVideoInfo {
     isGuest: boolean;
 }
 
-export function VideoPlayerPreview() {
+interface VideoPlayerPreviewProps {
+    selectedIntensity: string;
+    intensityValue: number;
+}
+
+export function VideoPlayerPreview({
+    selectedIntensity,
+    intensityValue,
+}: VideoPlayerPreviewProps) {
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [isMuted, setIsMuted] = useState(false);
     const [videoInfo, setVideoInfo] = useState<UploadedVideoInfo | null>(null);
+    const [isApplyingBlur, setIsApplyingBlur] = useState(false);
+    const [uploadStatus, setUploadStatus] = useState("");
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -36,7 +55,7 @@ export function VideoPlayerPreview() {
             if (storedData) {
                 try {
                     const parsed = JSON.parse(storedData);
-                    
+
                     try {
                         const latestVideo = await getLatestVideoFromIndexedDB();
                         if (latestVideo) {
@@ -79,10 +98,145 @@ export function VideoPlayerPreview() {
         }
     };
 
+    const handleApplyBlur = async () => {
+        if (selectedIntensity === "none") {
+            console.log("Skipping blur application for 'None' intensity");
+            return;
+        }
+
+        if (!videoInfo?.name) {
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "Video not found. Please upload a video first.",
+            });
+            return;
+        }
+
+        try {
+            setIsApplyingBlur(true);
+            setUploadStatus("Starting blur processing...");
+
+            const videoName = videoInfo.name;
+            const hasPaid = true;
+
+            console.log(
+                `[Blur Processing] Applying blur - Level: ${selectedIntensity}, Value: ${intensityValue}%`
+            );
+
+            // Step 1: Get video blob from IndexedDB
+            setUploadStatus("Retrieving video...");
+            let videoBlob: Blob | null = null;
+
+            try {
+                const latestVideo = await getLatestVideoFromIndexedDB();
+                if (latestVideo) {
+                    videoBlob = latestVideo.blob;
+                    console.log("Video retrieved from IndexedDB");
+                }
+            } catch (idbError) {
+                console.error("Failed to get video from IndexedDB:", idbError);
+            }
+
+            if (!videoBlob) {
+                throw new Error("Video blob not found. Please upload a video first.");
+            }
+
+            // Step 2: Upload video to server
+            setUploadStatus("Uploading video to server...");
+            const uploadData = await uploadVideoToServer(videoBlob, videoName, ServerURL);
+            console.log("Video uploaded to server:", uploadData);
+
+            // Step 3: Process video with blur effect
+            setUploadStatus("Processing video with blur...");
+            await processVideoForBlur({
+                videoName,
+                intensity: intensityValue,
+                serverUrl: ServerURL,
+                hasPaid,
+            });
+            console.log("Blur processing initiated");
+
+            // Step 4: Poll for compression status
+            setUploadStatus("Checking compression status...");
+            checkCompressionStatus({
+                videoName,
+                serverUrl: ServerURL,
+                onStatusUpdate: (status) => {
+                    console.log("Compression status:", status);
+                },
+                onComplete: async () => {
+                    setUploadStatus("Compression complete. Checking final status...");
+                    // Once compression is done, check final video status
+                    checkVideoStatus({
+                        videoName,
+                        serverUrl: ServerURL,
+                        onStatusUpdate: (status) => {
+                            console.log("Video status:", status);
+                        },
+                        onComplete: () => {
+                            setUploadStatus("Video processing complete!");
+                            setIsApplyingBlur(false);
+                            Swal.fire({
+                                icon: "success",
+                                title: "Success",
+                                text: `Blur effect applied with ${selectedIntensity} intensity!`,
+                            });
+                        },
+                        onError: (error) => {
+                            console.error("Video status error:", error);
+                            setUploadStatus("");
+                            setIsApplyingBlur(false);
+                            Swal.fire({
+                                icon: "error",
+                                title: "Error",
+                                text: error.message || "Failed to verify video status",
+                            });
+                        },
+                    });
+                },
+                onError: (error) => {
+                    console.error("Compression status error:", error);
+                    setUploadStatus("");
+                    setIsApplyingBlur(false);
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: error.message || "Failed to check compression status",
+                    });
+                },
+            });
+        } catch (error) {
+            console.error("Error applying blur:", error);
+            setIsApplyingBlur(false);
+            setUploadStatus("");
+
+            const errorMessage =
+                error instanceof Error ? error.message : "An error occurred while applying blur";
+
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: errorMessage + ". Please try again.",
+            });
+        }
+    };
+
     const minutes = Math.floor(currentTime / 60);
     const seconds = (currentTime % 60).toString().padStart(2, "0");
     const totalMinutes = Math.floor(duration / 60);
     const totalSeconds = (duration % 60).toString().padStart(2, "0");
+
+    const getIntensityLabel = () => {
+        const labels: Record<string, string> = {
+            none: "None",
+            low: "Low",
+            medium: "Medium",
+            high: "High",
+            custom: `Custom (${intensityValue}%)`,
+        };
+        return labels[selectedIntensity] || "Unknown";
+    };
 
     return (
         <div className="space-y-4 ml-0 lg:ml-24">
@@ -143,7 +297,9 @@ export function VideoPlayerPreview() {
                 {videoInfo && (
                     <div className="absolute bottom-4 left-4 text-white text-sm">
                         <p className="font-medium truncate">{videoInfo.name}</p>
-                        <p className="text-gray-300 text-xs">{videoInfo.size} • {videoInfo.duration}</p>
+                        <p className="text-gray-300 text-xs">
+                            {videoInfo.size} • {videoInfo.duration}
+                        </p>
                     </div>
                 )}
             </div>
@@ -178,12 +334,35 @@ export function VideoPlayerPreview() {
                             <div
                                 key={i}
                                 className={`flex-shrink-0 h-full rounded-sm ${duration > 0 && i < (currentTime / duration) * 40
-                                        ? "bg-gray-600"
-                                        : "bg-gray-700"
+                                    ? "bg-gray-600"
+                                    : "bg-gray-700"
                                     } cursor-pointer hover:bg-gray-500 transition`}
                                 style={{ width: "24px" }}
                             />
                         ))}
+                    </div>
+                </div>
+
+                {/* Intensity Display & Apply Button */}
+                <div className="bg-gray-900/50 border border-gray-700 rounded-lg p-3 sm:p-4">
+                    <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                            <p className="text-xs text-gray-400 mb-1">Current Blur Intensity</p>
+                            <p className="text-sm font-semibold text-purple-400">{getIntensityLabel()}</p>
+                            {uploadStatus && (
+                                <p className="text-xs text-purple-300 mt-1">{uploadStatus}</p>
+                            )}
+                        </div>
+                        <button
+                            onClick={handleApplyBlur}
+                            disabled={isApplyingBlur || selectedIntensity === "none"}
+                            className={`ml-4 px-4 py-2 rounded-lg font-medium text-sm transition-all whitespace-nowrap ${isApplyingBlur || selectedIntensity === "none"
+                                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
+                                : "bg-purple-600 text-white hover:bg-purple-700 active:scale-95"
+                                }`}
+                        >
+                            {isApplyingBlur ? "Applying..." : "Apply Blur"}
+                        </button>
                     </div>
                 </div>
 
