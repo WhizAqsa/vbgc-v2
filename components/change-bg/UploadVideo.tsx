@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FiUploadCloud } from "react-icons/fi";
 import Image from "next/image";
 import Swal from "sweetalert2";
+import { storeVideoPreview, checkVideoInCache } from "@/lib/indexeddb-utils";
 
 interface VideoInfo {
     name: string;
@@ -24,6 +25,26 @@ export function UploadVideo() {
     });
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Get user email from localStorage
+    const getEmailFromStorage = useCallback(() => {
+        try {
+            const possibleKeys = ["userEmail", "email", "user_email", "subscriptionPlan", "loggedInEmail", "currentUserEmail"];
+            for (const key of possibleKeys) {
+                const storedEmail = localStorage.getItem(key);
+                if (storedEmail) return storedEmail;
+            }
+            const userString = localStorage.getItem("user");
+            if (userString) {
+                const user = JSON.parse(userString);
+                if (user.email) return user.email;
+            }
+            return null;
+        } catch (error) {
+            console.error("Error retrieving email:", error);
+            return null;
+        }
+    }, []);
 
     useEffect(() => {
         return () => {
@@ -108,12 +129,17 @@ export function UploadVideo() {
     };
 
     const uploadFileToServer = async (): Promise<boolean> => {
+        console.log("[UPLOAD] ⏳ Starting server upload simulation...");
         return new Promise((resolve) => {
             let progress = 0;
             const interval = setInterval(() => {
                 progress += 10;
                 setUploadProgress(progress);
+                if (progress >= 50) {
+                    console.log(`[UPLOAD] 📊 Progress: ${progress}%`);
+                }
                 if (progress >= 100) {
+                    console.log("[UPLOAD] ✅ Server upload complete!");
                     clearInterval(interval);
                     resolve(true);
                 }
@@ -133,97 +159,26 @@ export function UploadVideo() {
         }
     }, [previewUrl]);
 
-    const storeVideoInIndexedDB = async (file: File, videoName: string) => {
-        return new Promise<void>((resolve, reject) => {
-            if (!videoName) {
-                reject(new Error("videoName is required"));
+    const storeVideoInIndexedDB = useCallback(async (file: File | Blob, videoName: string) => {
+        try {
+            const userEmail = getEmailFromStorage();
+            if (!userEmail) {
+                console.warn("[INDEXEDDB] ⚠️  No user email found, skipping storage");
                 return;
             }
 
-            // Convert File to ArrayBuffer (IndexedDB can store this)
-            const fileReader = new FileReader();
-            fileReader.onload = async () => {
-                const arrayBuffer = fileReader.result as ArrayBuffer;
+            console.log(`[INDEXEDDB] 💾 Storing video: ${videoName}`);
+            console.log(`[INDEXEDDB] 📦 File size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
 
-                const request = indexedDB.open("VideoPreviewsDB", 4);
+            const blob = file instanceof File ? file : file as Blob;
+            await storeVideoPreview(userEmail, videoName, blob, "original");
 
-                request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-                    const db = (event.target as IDBOpenDBRequest)?.result;
-                    if (!db) {
-                        reject(new Error("Failed to get database instance"));
-                        return;
-                    }
-
-                    // Delete old object store if it exists
-                    if (db.objectStoreNames.contains("userVideos")) {
-                        db.deleteObjectStore("userVideos");
-                    }
-
-                    // Create fresh object store with proper keyPath
-                    const store = db.createObjectStore("userVideos", { keyPath: "id", autoIncrement: true });
-                    store.createIndex("videoName", "videoName", { unique: true });
-                    store.createIndex("by_timestamp", "timestamp");
-                };
-
-                request.onsuccess = (event: Event) => {
-                    const db = (event.target as IDBOpenDBRequest)?.result;
-                    if (!db) {
-                        reject(new Error("Failed to get database instance"));
-                        return;
-                    }
-
-                    try {
-                        const transaction = db.transaction(["userVideos"], "readwrite");
-                        const store = transaction.objectStore("userVideos");
-
-                        // Store with 24-hour expiration
-                        const expiration = Date.now() + 24 * 60 * 60 * 1000;
-
-                        const record = {
-                            videoName,
-                            type: "original",
-                            fileBuffer: arrayBuffer,
-                            fileName: file.name,
-                            fileType: file.type,
-                            fileSize: file.size,
-                            expiration,
-                            timestamp: Date.now(),
-                        };
-
-                        const putRequest = store.add(record);
-                        putRequest.onsuccess = () => {
-                            db.close();
-                            resolve();
-                        };
-                        putRequest.onerror = () => {
-                            db.close();
-                            reject(new Error(`Failed to store video: ${putRequest.error?.message}`));
-                        };
-
-                        transaction.onerror = () => {
-                            db.close();
-                            reject(new Error(`Transaction failed: ${transaction.error?.message}`));
-                        };
-                    } catch (error) {
-                        db.close();
-                        reject(error);
-                    }
-                };
-
-                request.onerror = (event: Event) => {
-                    const error = (event.target as IDBOpenDBRequest)?.error;
-                    reject(error || new Error("Failed to open database"));
-                };
-            };
-
-            fileReader.onerror = () => {
-                reject(new Error("Failed to read file"));
-            };
-
-            fileReader.readAsArrayBuffer(file);
-        });
-    };
-
+            console.log(`[INDEXEDDB] ✅ Successfully stored: ${videoName}`);
+            console.log(`[INDEXEDDB] 🔑 Key: [${userEmail}, ${videoName}, original]`);
+        } catch (error) {
+            console.error("[INDEXEDDB] ❌ Failed to store video:", error);
+        }
+    }, [getEmailFromStorage]);
 
     const handleFile = useCallback(async (file: File) => {
 
@@ -276,19 +231,16 @@ export function UploadVideo() {
         const url = URL.createObjectURL(uploadFile);
         setPreviewUrl(url);
 
-        const uploadSuccess = await uploadFileToServer();
+        console.log("[FLOW] 1️⃣  Created blob URL for preview display");
 
-        if (uploadSuccess) {
-            const timestamp = Date.now();
-            const videoNameWithTimestamp = `${timestamp}__${file.name}`;
+        // ⭐ CHECK CACHE FIRST - Is this video already stored?
+        console.log("[FLOW] 1.5️⃣  Checking if video already cached...");
+        const userEmail = getEmailFromStorage();
+        const cachedVideo = await checkVideoInCache(userEmail, file.name);
 
-            try {
-                await storeVideoInIndexedDB(uploadFile, videoNameWithTimestamp);
-                console.log("Video stored in IndexedDB successfully");
-            } catch (error) {
-                console.error("Failed to store video in IndexedDB:", error);
-            }
-
+        if (cachedVideo) {
+            // ✅ CACHE HIT - Use existing video, skip upload
+            console.log(`[FLOW] 🚀 CACHE HIT! Skipping upload, using stored: ${cachedVideo.videoName}`);
             setIsUploading(false);
 
             sessionStorage.setItem("uploadedVideoInfo", JSON.stringify({
@@ -299,6 +251,62 @@ export function UploadVideo() {
                 fileType: "video/mp4",
                 isGuest: !localStorage.getItem("token"),
             }));
+            sessionStorage.setItem("fromChangeBg", "true");
+
+            const result = await Swal.fire({
+                icon: "success",
+                title: "Video Loaded from Cache!",
+                text: "This video was already uploaded. Using cached version.",
+                showConfirmButton: true,
+                confirmButtonText: "Apply Filters & Effects",
+                showDenyButton: true,
+                denyButtonText: "Upload New Video",
+                confirmButtonColor: "#3b82f6",
+                denyButtonColor: "#6b7280",
+            });
+
+            if (result.isConfirmed) {
+                router.push("/filters-and-effects");
+            } else if (result.isDenied) {
+                resetUploadState();
+                setIsUploading(false);
+            }
+            return;
+        }
+
+        // ❌ CACHE MISS - Upload as new video
+        console.log(`[FLOW] 📤 NEW UPLOAD - Not found in cache, proceeding with upload`);
+
+        // Step 2: Store in IndexedDB FIRST (before server upload)
+        const timestamp = Date.now();
+        const videoNameWithTimestamp = `${timestamp}__${file.name}`;
+        console.log(`[FLOW] 2️⃣  Storing video in IndexedDB with name: ${videoNameWithTimestamp}`);
+
+        try {
+            await storeVideoInIndexedDB(uploadFile, videoNameWithTimestamp);
+        } catch (error) {
+            console.error("[FLOW] ❌ IndexedDB storage failed:", error);
+        }
+
+        // Step 3: Upload to server
+        console.log("[FLOW] 3️⃣  Uploading to server...");
+        const uploadSuccess = await uploadFileToServer();
+
+        if (uploadSuccess) {
+            console.log("[FLOW] ✅ Server upload complete!");
+            setIsUploading(false);
+
+            // Step 4: Store metadata in sessionStorage for easy access
+            console.log("[FLOW] 4️⃣  Storing metadata in sessionStorage");
+            sessionStorage.setItem("uploadedVideoInfo", JSON.stringify({
+                name: file.name,
+                size: formatFileSize(uploadFile.size),
+                duration: metadata.duration,
+                previewUrl: url,
+                fileType: "video/mp4",
+                isGuest: !localStorage.getItem("token"),
+            }));
+            sessionStorage.setItem("fromChangeBg", "true");
 
             const result = await Swal.fire({
                 icon: "success",
@@ -328,7 +336,7 @@ export function UploadVideo() {
             });
             setIsUploading(false);
         }
-    }, [router, resetUploadState]);
+    }, [router, resetUploadState, getEmailFromStorage, storeVideoInIndexedDB]);
 
     const handleFileInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -495,4 +503,5 @@ export function UploadVideo() {
       `}</style>
         </div>
     );
+
 }

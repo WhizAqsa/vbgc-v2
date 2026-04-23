@@ -1,3 +1,7 @@
+"use client";
+
+import axios from "axios";
+
 /**
  * Intensity levels with their corresponding values
  */
@@ -8,6 +12,15 @@ export const INTENSITY_LEVELS = {
     high: 75,
     custom: (value: number) => value,
 } as const;
+
+/**
+ * Map numeric intensity to string level that backend expects
+ */
+export function mapIntensityToLevel(intensity: number): string {
+    if (intensity < 30) return "low";
+    if (intensity < 65) return "medium";
+    return "high";
+}
 
 /**
  * Get the numeric intensity value based on selected intensity level
@@ -39,323 +52,303 @@ export function getIntensityLabel(
     return labels[selectedIntensity] || "Unknown";
 }
 
-interface UploadResponse {
-    success?: boolean;
-    result?: string;
-    message?: string;
-    [key: string]: unknown;
-}
-
-interface ProcessBlurParams {
+interface CheckVideoStatusParams {
     videoName: string;
-    intensity: number;
     serverUrl: string;
-    hasPaid?: boolean;
-    timeout?: number;
+    onProgressUpdate?: (progress: number) => void;
+    onStatusUpdate?: (status: string) => void;
+    onComplete?: () => void;
+    onError?: (error: Error) => void;
 }
 
-interface BlurResponse {
-    status: string;
-    message?: string;
-    [key: string]: unknown;
-}
-
-interface VideoStatusResponse {
-    status: string;
-    [key: string]: unknown;
+interface CheckCompressionStatusParams {
+    videoName: string;
+    serverUrl: string;
+    onComplete?: () => void;
+    onError?: (error: Error) => void;
 }
 
 /**
- * Upload video blob to server
+ * Check video processing status and update progress
+ * This is the main function that polls the server for processing status
+ */
+export function checkVideoStatus({
+    videoName,
+    serverUrl,
+    onProgressUpdate,
+    onStatusUpdate,
+    onComplete,
+    onError,
+}: CheckVideoStatusParams): NodeJS.Timeout {
+    let attempts = 0;
+    const maxAttempts = 120; // 120 * 3 seconds = 360 seconds = 6 minutes
+    let progressValue = 0;
+
+    const interval = setInterval(async () => {
+        attempts++;
+
+        try {
+            console.log(`[Video Status] Checking (${attempts}/${maxAttempts}): ${videoName}`);
+
+            // Call the status endpoint
+            const response = await axios.get(`${serverUrl}getStatus`, {
+                params: { videoName },
+                timeout: 10000,
+            });
+
+            const { status } = response.data;
+
+            console.log(`[Video Status] Status: ${status}`);
+
+            // Status "1" means processing complete
+            if (status === "1") {
+                clearInterval(interval);
+                console.log("[Video Status] Processing complete!");
+                onProgressUpdate?.(100);
+                onStatusUpdate?.("Processing complete!");
+                onComplete?.();
+            }
+            // Status "-1" means error
+            else if (status === "-1") {
+                clearInterval(interval);
+                console.log("[Video Status] Processing failed!");
+                onError?.(new Error(response.data.message || "Video processing failed"));
+            }
+            // Still processing - increment progress
+            else {
+                // Increment progress more slowly for longer videos
+                const increment = progressValue < 50 ? 5 : 2;
+                progressValue = Math.min(progressValue + increment, 95);
+                onProgressUpdate?.(progressValue);
+                onStatusUpdate?.(`Processing video: ${progressValue}%`);
+            }
+
+            // Check for timeout
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.log("[Video Status] Timeout reached");
+                onError?.(new Error("Processing timed out after 6 minutes. Please try again."));
+            }
+
+        } catch (error) {
+            console.error("[Video Status] Error checking status:", error);
+
+            // Continue trying unless we've reached max attempts
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                onError?.(new Error("Failed to check video status. Please try again."));
+            }
+        }
+    }, 3000); // Check every 3 seconds
+
+    return interval;
+}
+
+/**
+ * Check compression status and then trigger blur processing
+ */
+export function checkCompressionStatus({
+    videoName,
+    serverUrl,
+    onComplete,
+    onError,
+}: CheckCompressionStatusParams): NodeJS.Timeout {
+    let attempts = 0;
+    const maxAttempts = 300; // 300 * 2 seconds = 600 seconds = 10 minutes
+
+    const interval = setInterval(async () => {
+        attempts++;
+
+        try {
+            console.log(`[Compression Status] Checking (${attempts}/${maxAttempts})`);
+
+            const response = await axios.get(`${serverUrl}getCompressionStatus`, {
+                params: { videoName },
+                timeout: 10000,
+            });
+
+            const { status } = response.data;
+
+            console.log(`[Compression Status] Status: ${status}`);
+
+            // Status "1" means compression complete
+            if (status === "1") {
+                clearInterval(interval);
+                console.log("[Compression Status] Complete!");
+                onComplete?.();
+            }
+            // Timeout
+            else if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                console.log("[Compression Status] Timeout - continuing anyway");
+                // Don't error on compression timeout, just continue
+                onComplete?.();
+            }
+
+        } catch (error) {
+            console.error("[Compression Status] Error:", error);
+
+            if (attempts >= maxAttempts) {
+                clearInterval(interval);
+                // Don't fail on compression errors, continue
+                onComplete?.();
+            }
+        }
+    }, 2000);
+
+    return interval;
+}
+
+/**
+ * Upload video to server (simplified version)
  */
 export async function uploadVideoToServer(
     videoBlob: Blob,
     videoName: string,
     serverUrl: string
-): Promise<UploadResponse> {
+): Promise<void> {
     try {
-        console.log("[Upload] Uploading video to server:", videoName);
+        console.log("[Upload] Uploading video:", videoName);
 
         const formData = new FormData();
-        formData.append("video", videoBlob, videoName);
-        formData.append("videoName", videoName);
+        formData.append("file", videoBlob, videoName);
+        formData.append("check", "web");
 
-        const response = await fetch(`${serverUrl}uploadVideoV2`, {
-            method: "POST",
-            body: formData,
+        const response = await axios.post(`${serverUrl}uploadVideoV2`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+            timeout: 300000, // 5 minutes timeout for upload
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(
-                `Upload failed: ${response.status} ${response.statusText}. ${errorText}`
-            );
-        }
+        console.log("[Upload] Success:", response.data);
 
-        const data = await response.json();
-        console.log("[Upload] Success:", data);
-        return data;
     } catch (error) {
         console.error("[Upload] Failed:", error);
-        throw error;
+        throw new Error("Failed to upload video to server");
     }
 }
 
 /**
  * Process video with blur effect
  */
-export async function processVideoForBlur({
-    videoName,
-    intensity,
-    serverUrl,
-    hasPaid = false,
-    timeout = 1380000,
-}: ProcessBlurParams): Promise<BlurResponse> {
+export async function processVideoForBlur(
+    videoName: string,
+    intensityLevel: string,
+    serverUrl: string,
+    hasPaid: boolean = false
+): Promise<void> {
     try {
-        console.log(
-            `[Blur Processing] Starting blur with intensity: ${intensity} for video: ${videoName}`
-        );
+        console.log(`[Blur] Processing with intensity: ${intensityLevel}`);
 
-        const url = new URL(`${serverUrl}processVideoForBlur`);
-        url.searchParams.append("value", intensity.toString());
-        url.searchParams.append("videoName", videoName);
-        url.searchParams.append("has_paid", hasPaid ? "yes" : "no");
+        const response = await axios.get(`${serverUrl}processVideoForBlur`, {
+            params: {
+                value: intensityLevel,
+                videoName: videoName,
+                has_paid: hasPaid ? "yes" : "no",
+            },
+            timeout: 30000, // 30 seconds timeout for processing initiation
+        });
 
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        console.log("[Blur] Initiated:", response.data);
 
-        try {
-            const response = await fetch(url.toString(), {
-                method: "GET",
-                signal: controller.signal,
-            });
-
-            clearTimeout(timeoutId);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(
-                    `Blur processing failed: ${response.status} ${response.statusText}. ${errorText}`
-                );
-            }
-
-            const data = await response.json();
-            console.log("[Blur Processing] Success:", data);
-            return data;
-        } catch (error) {
-            clearTimeout(timeoutId);
-            if (error instanceof Error && error.name === "AbortError") {
-                throw new Error("Blur processing timeout");
-            }
-            throw error;
-        }
     } catch (error) {
-        console.error("[Blur Processing] Failed:", error);
-        throw error;
+        console.error("[Blur] Failed:", error);
+        throw new Error("Failed to initiate blur processing");
     }
 }
 
-interface CheckVideoStatusParams {
-    videoName: string;
-    serverUrl: string;
-    onStatusUpdate?: (status: VideoStatusResponse) => void;
-    onComplete?: (data: VideoStatusResponse) => void;
-    onError?: (error: Error) => void;
-    maxAttempts?: number;
-}
-
-
-export function checkVideoStatus({
-    videoName,
-    serverUrl,
-    onStatusUpdate,
-    onComplete,
-    onError,
-    maxAttempts = 60,
-}: CheckVideoStatusParams): NodeJS.Timeout {
-    let attempts = 0;
-    const interval = setInterval(async () => {
-        try {
-            console.log(
-                `[Video Status] Checking status for: ${videoName} (attempt ${attempts + 1}/${maxAttempts})`
-            );
-
-            const url = new URL(`${serverUrl}getVideoStatus`);
-            url.searchParams.append("videoName", videoName);
-
-            const response = await fetch(url.toString(), {
-                method: "GET",
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(
-                    `Status check failed: ${response.status} ${response.statusText}. ${errorText}`
-                );
-            }
-
-            const data = await response.json();
-            console.log("[Video Status] Response:", data);
-
-            onStatusUpdate?.(data);
-
-            // Check if processing is complete
-            if (data.status === "1" || data.status === "complete") {
-                clearInterval(interval);
-                console.log("[Video Status] Processing complete!");
-                onComplete?.(data);
-            } else if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                console.warn("[Video Status] Status check timed out");
-                onError?.(new Error("Processing timed out. Please try again."));
-            }
-
-            attempts++;
-        } catch (error) {
-            console.error("[Video Status] Error:", error);
-            attempts++;
-
-            // Only throw after max attempts
-            if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                onError?.(error instanceof Error ? error : new Error(String(error)));
-            }
-        }
-    }, 2000); // Check every 2 seconds
-
-    return interval;
-}
-
-interface CheckCompressionStatusParams {
-    videoName: string;
-    serverUrl: string;
-    onStatusUpdate?: (status: VideoStatusResponse) => void;
-    onComplete?: (data: VideoStatusResponse) => void;
-    onError?: (error: Error) => void;
-    maxAttempts?: number;
-}
-
-
-export function checkCompressionStatus({
-    videoName,
-    serverUrl,
-    onStatusUpdate,
-    onComplete,
-    onError,
-    maxAttempts = 300,
-}: CheckCompressionStatusParams): NodeJS.Timeout {
-    let attempts = 0;
-    const interval = setInterval(async () => {
-        try {
-            console.log(
-                `[Compression Status] Checking status for: ${videoName} (attempt ${attempts + 1}/${maxAttempts})`
-            );
-
-            const url = new URL(`${serverUrl}getCompressionStatus`);
-            url.searchParams.append("videoName", videoName);
-
-            const response = await fetch(url.toString(), {
-                method: "GET",
-            });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(
-                    `Compression check failed: ${response.status} ${response.statusText}. ${errorText}`
-                );
-            }
-
-            const data = await response.json();
-            console.log("[Compression Status] Response:", data);
-
-            onStatusUpdate?.(data);
-
-            // Check if compression is complete
-            if (data.status === "1" || data.status === "complete") {
-                clearInterval(interval);
-                console.log("[Compression Status] Compression complete!");
-                onComplete?.(data);
-            } else if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                console.warn("[Compression Status] Status check timed out");
-                onError?.(new Error("Compression timed out. Please try again."));
-            }
-
-            attempts++;
-        } catch (error) {
-            console.error("[Compression Status] Error:", error);
-            attempts++;
-
-            // Only throw after max attempts
-            if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                onError?.(error instanceof Error ? error : new Error(String(error)));
-            }
-        }
-    }, 2000); // Check every 2 seconds
-
-    return interval;
-}
-
-interface ApplyBlurToVideoParams {
-    videoName: string;
-    selectedIntensity: string;
-    customIntensity: number;
-    serverUrl: string;
-    hasPaid?: boolean;
-    onStatusUpdate?: (status: string) => void;
-    onSuccess?: () => void;
-    onError?: (error: Error) => void;
-}
-
-
-export async function applyBlurToVideo({
-    videoName,
-    selectedIntensity,
-    customIntensity,
-    serverUrl,
-    hasPaid = false,
-    onStatusUpdate,
-    onSuccess,
-    onError,
-}: ApplyBlurToVideoParams): Promise<NodeJS.Timeout | undefined> {
+/**
+ * Download processed video
+ */
+export async function downloadProcessedVideo(
+    videoName: string,
+    serverUrl: string,
+    hasPaid: boolean = false
+): Promise<Blob> {
     try {
-        if (selectedIntensity === "none") {
-            console.log("[Blur Apply] Skipping blur (intensity: none)");
-            onSuccess?.();
-            return;
+        console.log("[Download] Downloading video:", videoName);
+
+        const response = await axios.get(`${serverUrl}downloadVideoT`, {
+            params: {
+                videoName: videoName,
+                check: "web",
+                has_paid: hasPaid ? "yes" : "no",
+            },
+            responseType: "blob",
+            timeout: 300000, // 5 minutes timeout for download
+        });
+
+        if (!response.data || response.data.size === 0) {
+            throw new Error("Downloaded video is empty");
         }
 
-        const intensity = getIntensityValue(selectedIntensity, customIntensity);
-        const label = getIntensityLabel(selectedIntensity, customIntensity);
+        console.log("[Download] Success, size:", response.data.size);
+        return response.data;
 
-        onStatusUpdate?.(`Applying ${label} blur effect...`);
+    } catch (error) {
+        console.error("[Download] Failed:", error);
+        throw new Error("Failed to download processed video");
+    }
+}
 
-        // Process video with blur
-        await processVideoForBlur({
-            videoName,
-            intensity,
-            serverUrl,
-            hasPaid,
+/**
+ * Complete blur application flow using callbacks (simpler approach)
+ */
+export async function applyBlurAndMonitor(
+    videoName: string,
+    intensityLevel: string,
+    serverUrl: string,
+    hasPaid: boolean,
+    callbacks: {
+        onProgress?: (progress: number) => void;
+        onStatus?: (status: string) => void;
+        onComplete?: (videoBlob: Blob) => void;
+        onError?: (error: Error) => void;
+    }
+): Promise<void> {
+    let statusInterval: NodeJS.Timeout | null = null;
+
+    try {
+        // Step 1: Process with blur
+        callbacks.onStatus?.("Applying blur effect...");
+        await processVideoForBlur(videoName, intensityLevel, serverUrl, hasPaid);
+
+        // Step 2: Wait for processing to complete
+        callbacks.onStatus?.("Processing video, please wait...");
+
+        await new Promise<void>((resolve, reject) => {
+            statusInterval = checkVideoStatus({
+                videoName,
+                serverUrl,
+                onProgressUpdate: (progress) => {
+                    callbacks.onProgress?.(progress);
+                },
+                onStatusUpdate: (status) => {
+                    callbacks.onStatus?.(status);
+                },
+                onComplete: () => {
+                    resolve();
+                },
+                onError: (error) => {
+                    reject(error);
+                },
+            });
         });
 
-        onStatusUpdate?.("Processing video...");
+        // Step 3: Download processed video
+        callbacks.onStatus?.("Downloading processed video...");
+        const videoBlob = await downloadProcessedVideo(videoName, serverUrl, hasPaid);
 
-        // Poll for completion
-        const statusInterval = checkVideoStatus({
-            videoName,
-            serverUrl,
-            onComplete: () => {
-                onStatusUpdate?.("Blur effect applied successfully!");
-                onSuccess?.();
-            },
-            onError,
-            maxAttempts: 60,
-        });
+        callbacks.onStatus?.("Complete!");
+        callbacks.onComplete?.(videoBlob);
 
-        return statusInterval;
     } catch (error) {
         console.error("[Apply Blur] Error:", error);
-        onError?.(error instanceof Error ? error : new Error(String(error)));
+        callbacks.onError?.(error instanceof Error ? error : new Error(String(error)));
+    } finally {
+        if (statusInterval) {
+            clearInterval(statusInterval);
+        }
     }
 }
