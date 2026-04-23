@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import {
     FiPlay,
     FiPause,
@@ -204,13 +204,7 @@ export function VideoPlayerPreview({
         });
     };
 
-    useEffect(() => {
-        if (videoNameRef.current && progress === maxProgress && progress > 0) {
-            handleVideoDownload();
-        }
-    }, [progress, maxProgress]);
-
-    const handleVideoDownload = async () => {
+    const handleVideoDownload = useCallback(async () => {
         const videoName = videoNameRef.current;
         if (!videoName) return;
 
@@ -294,7 +288,13 @@ export function VideoPlayerPreview({
                 text: "Failed to download processed video. Please try again.",
             });
         }
-    };
+    }, [hasPaid, videoInfo, userEmail]);
+
+    useEffect(() => {
+        if (videoNameRef.current && progress === maxProgress && progress > 0) {
+            handleVideoDownload();
+        }
+    }, [progress, maxProgress, handleVideoDownload]);
 
     const checkVideoStatus = (videoName: string) => {
         if (processingIntervalRef.current) {
