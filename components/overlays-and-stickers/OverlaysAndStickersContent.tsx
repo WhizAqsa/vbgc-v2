@@ -22,9 +22,9 @@ export default function OverlaysAndStickersContent() {
                     <BackgroundsGrid />
                 </div>
 
-                <div className="lg:col-span-3">
+                {/* <div className="lg:col-span-3">
                     <VideoPlayerPreview />
-                </div>
+                </div> */}
             </div>
         </div>
     );
