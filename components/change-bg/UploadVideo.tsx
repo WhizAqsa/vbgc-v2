@@ -276,21 +276,93 @@ export function UploadVideo() {
         const url = URL.createObjectURL(uploadFile);
         setPreviewUrl(url);
 
+        console.log("[FLOW] 1️⃣  Created blob URL for preview display");
+
+        // ⭐ CHECK CACHE FIRST - Is this video already stored?
+        console.log("[FLOW] 1.5️⃣  Checking if video already cached...");
+        const userEmail = getEmailFromStorage();
+        const cachedVideo = await checkVideoInCache(userEmail, file.name);
+
+        if (cachedVideo) {
+            // ✅ CACHE HIT - Use existing video from cache, but upload to server
+            console.log(`[FLOW] 🚀 CACHE HIT! Using stored: ${cachedVideo.videoName}`);
+
+            // Still need to upload to server in case it's been cleaned up
+            console.log(`[FLOW] 📤 Uploading cached video to server...`);
+            setIsUploading(true);
+
+            const uploadSuccess = await uploadFileToServer();
+
+            if (uploadSuccess) {
+                console.log("[FLOW] ✅ Cached video uploaded to server!");
+                setIsUploading(false);
+
+                sessionStorage.setItem("uploadedVideoInfo", JSON.stringify({
+                    name: file.name,
+                    size: formatFileSize(uploadFile.size),
+                    duration: metadata.duration,
+                    previewUrl: url,
+                    fileType: "video/mp4",
+                    isGuest: !localStorage.getItem("token"),
+                    videoName: cachedVideo.videoName, // Store the actual cached video name
+                }));
+                sessionStorage.setItem("fromChangeBg", "true");
+
+                const result = await Swal.fire({
+                    icon: "success",
+                    title: "Video Loaded from Cache!",
+                    text: "This video was already uploaded. Using cached version.",
+                    showConfirmButton: true,
+                    confirmButtonText: "Apply Filters & Effects",
+                    showDenyButton: true,
+                    denyButtonText: "Upload New Video",
+                    confirmButtonColor: "#3b82f6",
+                    denyButtonColor: "#6b7280",
+                });
+
+                if (result.isConfirmed) {
+                    router.push("/filters-and-effects?from-change-bg=true");
+                } else if (result.isDenied) {
+                    resetUploadState();
+                    setIsUploading(false);
+                }
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Upload Failed",
+                    text: "Could not upload cached video to server. Please try uploading again.",
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+                setIsUploading(false);
+            }
+            return;
+        }
+
+        // ❌ CACHE MISS - Upload as new video
+        console.log(`[FLOW] 📤 NEW UPLOAD - Not found in cache, proceeding with upload`);
+
+        // Step 2: Store in IndexedDB FIRST (before server upload)
+        const timestamp = Date.now();
+        const videoNameWithTimestamp = `${timestamp}__${file.name}`;
+        console.log(`[FLOW] 2️⃣  Storing video in IndexedDB with name: ${videoNameWithTimestamp}`);
+
+        try {
+            await storeVideoInIndexedDB(uploadFile, videoNameWithTimestamp);
+        } catch (error) {
+            console.error("[FLOW] ❌ IndexedDB storage failed:", error);
+        }
+
+        // Step 3: Upload to server
+        console.log("[FLOW] 3️⃣  Uploading to server...");
         const uploadSuccess = await uploadFileToServer();
 
         if (uploadSuccess) {
-            const timestamp = Date.now();
-            const videoNameWithTimestamp = `${timestamp}__${file.name}`;
-
-            try {
-                await storeVideoInIndexedDB(uploadFile, videoNameWithTimestamp);
-                console.log("Video stored in IndexedDB successfully");
-            } catch (error) {
-                console.error("Failed to store video in IndexedDB:", error);
-            }
-
+            console.log("[FLOW] ✅ Server upload complete!");
             setIsUploading(false);
 
+            // Step 4: Store metadata in sessionStorage for easy access
+            console.log("[FLOW] 4️⃣  Storing metadata in sessionStorage");
             sessionStorage.setItem("uploadedVideoInfo", JSON.stringify({
                 name: file.name,
                 size: formatFileSize(uploadFile.size),
@@ -298,7 +370,9 @@ export function UploadVideo() {
                 previewUrl: url,
                 fileType: "video/mp4",
                 isGuest: !localStorage.getItem("token"),
+                videoName: videoNameWithTimestamp, // Store the video name with timestamp
             }));
+            sessionStorage.setItem("fromChangeBg", "true");
 
             const result = await Swal.fire({
                 icon: "success",
@@ -313,7 +387,7 @@ export function UploadVideo() {
             });
 
             if (result.isConfirmed) {
-                router.push("/filters-and-effects");
+                router.push("/filters-and-effects?from-change-bg=true");
             } else if (result.isDenied) {
                 resetUploadState();
                 setIsUploading(false);
